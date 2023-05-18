@@ -117,6 +117,15 @@ new_line_textbox2 = TextBox(
     RuleError, 
     Rule.latex
     )
+
+subproof_assumption_textbox = TextBox(
+    "subproof_assumption_textbox",
+    "Subproof Assumption", 
+    None, 
+    PropNode.parse, 
+    ParsingError, 
+    PropNode.latex
+    )
             
 ##########
 # SET UP #
@@ -142,7 +151,9 @@ if "main_proof" not in st.session_state:
 # CHOOSE ASSUMPTIONS #
 ######################
 
-col1, col2, col3, col4 = st.columns([3,0.5,1,0.5])
+o1, o2, o3, o4 = 3, 0.4, 1, 0.5
+
+col1, col2, col3, col4 = st.columns([o1, o2, o3, o4])
 
 with col1:
 
@@ -161,10 +172,6 @@ with col3:
 
     st.button(button_text, on_click = when_assumptions_clicked, disabled=isinstance(st.session_state.textboxes['assumptions_textbox']['error'], Exception) or st.session_state.textboxes['assumptions_textbox']['disabled'])
 
-#############
-# ADD LINES #
-#############
-
 if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
     if st.session_state.main_proof is None:
@@ -177,27 +184,91 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
     st.markdown('')
 
-    st.subheader("Either create a new line...")
+    ###################
+    # CREATE NEW LINE #
+    ###################
 
-    col1, col2 = st.columns(2)
+    st.subheader("Either create a new line...")
+    
+    x3, x4 = 1, 0.2
+
+    x2 = o2*(x3+x4)/(o3+o4)
+
+    x1 = o1*(x3+x4)/(o3+o4)
+
+    col1, col2, col3, col4 = st.columns([x1, x2, x3, x4])
 
     with col1:
 
-        new_line_textbox1.deploy()
+        st.markdown('')
 
-    with col2:
+        new_line_textbox1.deploy()
 
         new_line_textbox2.deploy()
 
-    formula_and_rule_in_place = isinstance(st.session_state.textboxes["new_line_textbox1"]['value'], PropNode) and isinstance(st.session_state.textboxes["new_line_textbox2"]['value'], Rule)
+    with col3:
+        
+        st.markdown('')
+        st.markdown('')
+        st.markdown('')
+        st.markdown('')
 
-    def add_line_button(formula, rule):
-        st.session_state.current_subproof.add_last(ProofLine(formula, rule))
-    st.button('Add Line', on_click=add_line_button, args=(st.session_state.textboxes["new_line_textbox1"]['value'], st.session_state.textboxes["new_line_textbox2"]['value']), disabled = not formula_and_rule_in_place)
+        formula_and_rule_in_place = isinstance(st.session_state.textboxes["new_line_textbox1"]['value'], PropNode) and isinstance(st.session_state.textboxes["new_line_textbox2"]['value'], Rule)
+
+        def add_line_button(formula, rule):
+            st.session_state.current_subproof.add_last(ProofLine(formula, rule))
+        st.button('Add Line', on_click=add_line_button, args=(st.session_state.textboxes["new_line_textbox1"]['value'], st.session_state.textboxes["new_line_textbox2"]['value']), disabled = not formula_and_rule_in_place)
+        
+        def delete_last_line_button():
+            st.session_state.current_subproof = st.session_state.current_subproof.remove_last()
+        st.button('Delete Last Line', on_click=delete_last_line_button, disabled = len(st.session_state.current_subproof.subproofs) == 0)
     
-    st.button('Delete Last Line', on_click=st.session_state.main_proof.remove_last, disabled = len(st.session_state.main_proof.subproofs) == 0)
-    
+    ######################
+    # START NEW SUBPROOF #
+    ######################
+
+    st.markdown('')
     st.subheader("Or start a new subproof!")
+    st.markdown('')
+
+    x3, x4 = 1.5, 0.1
+
+    x2 = o2*(x3+x4)/(o3+o4)
+
+    x1 = o1*(x3+x4)/(o3+o4)
+
+    col1, col2, col3, col4 = st.columns([x1, x2, x3, x4])
+
+    with col1:
+        st.markdown('')
+        subproof_assumption_textbox.deploy()
+
+    with col3:
+
+        def start_new_subproof_button(formula):
+            new_subproof = Proof([formula])
+            st.session_state.current_subproof.add_last(new_subproof)
+            st.session_state.current_subproof = new_subproof
+        st.button("Start New Subproof", 
+                  on_click=start_new_subproof_button, 
+                  args=(st.session_state.textboxes['subproof_assumption_textbox']['value'],),
+                  disabled=not isinstance(st.session_state.textboxes['subproof_assumption_textbox']['value'], PropNode))
+    
+        def delete_current_subproof_button():
+            st.session_state.current_subproof.self_delete()
+            st.session_state.current_subproof = st.session_state.current_subproof.parent
+            
+        st.button("Delete Current Subproof", 
+                  on_click=delete_current_subproof_button, 
+                  disabled=st.session_state.current_subproof.parent is None)
+        
+        def exit_current_subproof_button():
+            st.session_state.current_subproof = st.session_state.current_subproof.parent
+            
+        st.button("Exit Current Subproof", 
+                  on_click=exit_current_subproof_button, 
+                  disabled=(st.session_state.current_subproof.parent is None) or len(st.session_state.current_subproof.subproofs) == 0)
+
 
     st.button('Start Over', on_click=set_up)
 

@@ -118,13 +118,22 @@ class Proof():
 
     def remove_last(self):
         if len(self.subproofs) == 0:
-            raise ProofError('trying to remove line from proof with no deduction lines')
+            raise ProofError('trying to remove lines from main proof when there are no lines to remove')
         
         if isinstance(self.subproofs[-1], ProofLine):
             self.subproofs = self.subproofs[:-1]
             self.update_n_lines(-1)
+            return self
         else:
-            self.subproofs[-1].remove_last()
+            return self.subproofs[-1].remove_last()
+    
+    def self_delete(self):
+        if self.parent is None:
+            raise ProofError('trying to delete main proof')
+        
+        self.update_n_lines(-self.n_lines)
+
+        self.parent.subproofs.remove(self)
 
 # z = Proof([PropNode.parse(r'\neg p')])
 # z.add_last(ProofLine(PropNode.parse(r'p \to q'), Rule.parse(r'\neg E 2')))
