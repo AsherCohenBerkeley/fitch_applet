@@ -22,6 +22,10 @@ class ProofLine():
     
     def __repr__(self):
         return f'ProofLine({self.formula.__repr__()}, {self.rule.__repr__()})'
+    
+    def change(self, formula, rule):
+        self.formula = formula
+        self.rule = rule
 
 class Proof():
     def __init__(self, assumptions):
@@ -134,6 +138,33 @@ class Proof():
         self.update_n_lines(-self.n_lines)
 
         self.parent.subproofs.remove(self)
+    
+    def pure_list(self):
+        output = []
+        output += self.assumptions
+        for subproof in self.subproofs:
+            if isinstance(subproof, ProofLine):
+                output.append(subproof)
+            else:
+                output += subproof.pure_list()
+        return output
+    
+    def find(self, n):
+        try:
+            return self.pure_list()[n-1]
+        except IndexError:
+            raise ProofError('trying to find with out of range line number')
+        
+    def change(self, n, formula, rule):
+        if isinstance(self.find(n), ProofLine):
+            self.find(n).change(formula, rule)
+        else:
+            self.find(n).change(formula)
+
+
+####################
+# A GOOD TEST CASE #
+####################
 
 # z = Proof([PropNode.parse(r'\neg p')])
 # z.add_last(ProofLine(PropNode.parse(r'p \to q'), Rule.parse(r'\neg E 2')))
@@ -150,3 +181,8 @@ class Proof():
 # y.add_last(ProofLine(PropNode.parse(r'p'), Rule.parse(r'RAA 2-6')))
 
 # z.add_last(ProofLine(PropNode.parse(r'p \wedge \neg p'), Rule.parse(r'\wedge I 2,5')))
+
+# print(x)
+# print(x.change(5, PropNode.parse('q'), Rule.parse('R 1')))
+# print('')
+# print(x)

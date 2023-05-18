@@ -62,7 +62,7 @@ class TextBox():
     
     def deploy(self):
 
-        new_input = st.text_input(self.above_text_box, disabled = st.session_state.textboxes[self.id]['disabled'])
+        new_input = st.text_input(self.above_text_box, key = self.id, disabled = st.session_state.textboxes[self.id]['disabled'])
         
         if len(new_input) == 0:
             st.session_state.textboxes[self.id]['value'] = self.default_value
@@ -125,6 +125,24 @@ subproof_assumption_textbox = TextBox(
     PropNode.parse, 
     ParsingError, 
     PropNode.latex
+    )
+
+change_line_textbox1 = TextBox(
+    "change_line_textbox1",
+    "LaTeX Formula", 
+    None, 
+    PropNode.parse, 
+    ParsingError, 
+    PropNode.latex
+    )
+
+change_line_textbox2 = TextBox(
+    "change_line_textbox2",
+    "Deduction Rule", 
+    None, 
+    Rule.parse, 
+    RuleError, 
+    Rule.latex
     )
             
 ##########
@@ -190,7 +208,21 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
     st.subheader("Either create a new line...")
     
-    x3, x4 = 1, 0.2
+    st.markdown('')
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        new_line_textbox1.deploy()   
+
+    with col2:
+
+        new_line_textbox2.deploy()
+
+    st.markdown('')
+
+    x3, x4 = 1.5, 0.1
 
     x2 = o2*(x3+x4)/(o3+o4)
 
@@ -199,20 +231,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
     col1, col2, col3, col4 = st.columns([x1, x2, x3, x4])
 
     with col1:
-
-        st.markdown('')
-
-        new_line_textbox1.deploy()
-
-        new_line_textbox2.deploy()
-
-    with col3:
-        
-        st.markdown('')
-        st.markdown('')
-        st.markdown('')
-        st.markdown('')
-
+    
         formula_and_rule_in_place = isinstance(st.session_state.textboxes["new_line_textbox1"]['value'], PropNode) and isinstance(st.session_state.textboxes["new_line_textbox2"]['value'], Rule)
 
         def add_line_button(formula, rule):
@@ -223,12 +242,78 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
             st.session_state.current_subproof = st.session_state.current_subproof.remove_last()
         st.button('Delete Last Line', on_click=delete_last_line_button, disabled = len(st.session_state.current_subproof.subproofs) == 0)
     
+    st.markdown('')
+
+    ########################
+    # CHANGE EXISTING LINE #
+    ########################
+
+    st.subheader("Change an existing line...")
+    
+    st.markdown('')
+
+    col1a, col1, col1b, col2, col3a, col3, col3b, col4, col5, col6 = st.columns([
+        0.6, 
+        3,
+        0.2,
+        4,
+        0.5,
+        1,
+        0.3,
+        4,
+        4,
+        4,
+    ])
+
+    with col1:
+        st.markdown('')
+        st.markdown('')
+        st.markdown('Change line')
+
+    with col2:
+        default_string = '---'
+        line_number = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines+1))))
+        if line_number != default_string:
+            line_number = int(line_number)
+
+    with col3:
+        st.markdown('')
+        st.markdown('')
+        st.markdown('to')
+
+    with col4:
+        change_line_textbox1.deploy()
+
+    if isinstance(line_number, str) or (isinstance(line_number, int) and isinstance(st.session_state.main_proof.find(line_number), ProofLine)):
+        with col5:
+            change_line_textbox2.deploy()
+
+    with col6:
+        st.markdown('')
+        st.markdown('')
+        def change_line_button(line_number, formula, rule):
+            st.session_state.main_proof.change(line_number, formula, rule)
+            
+        st.button("Change Line", 
+                    on_click=change_line_button, 
+                    args = (line_number, 
+                            st.session_state.textboxes["change_line_textbox1"]["value"],
+                            st.session_state.textboxes["change_line_textbox2"]["value"],),
+                    disabled= not(
+                        isinstance(line_number, int) 
+                        and isinstance(st.session_state.textboxes["change_line_textbox1"]["value"], PropNode)
+                        and (isinstance(st.session_state.main_proof.find(line_number), PropNode) or isinstance(st.session_state.textboxes["change_line_textbox2"]["value"], Rule))
+                        )
+                    )
+
+    st.markdown('')
+
     ######################
     # START NEW SUBPROOF #
     ######################
 
-    st.markdown('')
     st.subheader("Or start a new subproof!")
+    
     st.markdown('')
 
     x3, x4 = 1.5, 0.1

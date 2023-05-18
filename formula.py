@@ -17,6 +17,10 @@ class PropNode():
         else:
             return f'({self.sub[0].latex()} {self.name} {self.sub[1].latex()})'
     
+    def change(self, formula):
+        self.name = formula.name
+        self.sub = formula.sub
+    
     def __repr__(self):
         output = f"PropNode('{self.name}', ["
         for subnode in self.sub:
