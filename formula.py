@@ -8,6 +8,19 @@ class PropNode():
     def __init__(self, name, sub):
         self.name = name
         self.sub = sub
+    
+    def eq_syntax(self, other):
+        if not isinstance(other, PropNode):
+            return False
+        if not (self.name == other.name):
+            return False
+        if len(self.sub) != len(other.sub):
+            return False
+        
+        output = True
+        for (self_subproof, other_subproof) in zip(self.sub, other.sub):
+            output = output and self_subproof.eq_syntax(other_subproof)
+        return output
 
     def latex(self):
         if len(self.sub) == 0:
