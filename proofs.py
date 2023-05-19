@@ -1,5 +1,6 @@
 from formula import *
 from rules import *
+from comments import *
 
 class ProofError(LogicError):
     pass
@@ -10,17 +11,6 @@ class Blank():
 
     def latex(self):
         return ''
-
-class Comment():
-    def __init__(self, line_number, comment):
-        self.comment = comment
-
-class GoodComment(Comment):
-    def __init__(self, line_number, comment=None):
-        self.comment = f'Everything good on line {line_number}. ✅'
-
-class BadComment(Comment):
-    pass
 
 class ProofLine():
     def __init__(self, formula, rule):
@@ -167,6 +157,15 @@ class Proof():
             return self.pure_list()[n-1]
         except IndexError:
             raise ProofError('trying to find with out of range line number')
+    
+    def find_line_number(self, formula):
+        return self.pure_list().index(formula) + 1
+    
+    def first(self):
+        return self.pure_list()[0]
+    
+    def last(self):
+        return self.pure_list()[-1]
         
     def change(self, n, formula, rule):
         if isinstance(self.find(n), ProofLine):
@@ -197,45 +196,108 @@ class Proof():
         if isinstance(main_line, PropNode):
             return ProofError('checking assumption line')
         
-        main_formula, rule_name, cit_line_numbers = main_line.formula, main_line.rule.name, main_line.rule.cit_lines
+        main_formula, rule_name, cit = main_line.formula, main_line.rule.name, main_line.rule.cit
         
-        cit_line_numbers = [int(string) for string in cit_line_numbers]
+        cit_split = cit.split(',')
+
+        cit_line_numbers = [int(string) for string in cit_split if '-' not in string]
+
+        #Deal with individual formulas
 
         cit_formulas = []
         for line_number in cit_line_numbers:
+            if not self.accessible(line_number, n):
+                    return BadComment(f'Line {line_number} is not accessible at this line.')
             line = self.find(line_number)
             if isinstance(line, ProofLine):
                 line = line.formula
             cit_formulas.append(line)
 
+        #Deal with formula ranges
+
+        cit_subproofs = []
+        for string in cit_split:
+            if '-' in string:
+                line_number1, line_number2 = string.split('-')
+                line_number1, line_number2 = int(line_number1), int(line_number2)
+
+                if line_number1 >= n or line_number2 >= n:
+                    return BadComment(f'The range {line_number1}-{line_number2} does not come strictly before the line on which it is cited.')
+
+                line1 = self.find(line_number1)
+                line2 = self.find(line_number2)
+                if not (isinstance(line1, PropNode) and isinstance(line2, ProofLine)):
+                    return BadComment(f'The range {line_number1}-{line_number2} does not encompass a subproof.')
+                
+                subproof = line2.parent_proof
+
+                main_proof = subproof
+                while isinstance(main_proof.parent, Proof):
+                    main_proof = main_proof.parent
+
+                if not (len(subproof.assumptions) == 1 and line1 == subproof.assumptions[0]): 
+                    return BadComment(f'The range {line_number1}-{line_number2} does not encompass a subproof.')
+                
+                if not (subproof.parent.parent == None or self.accessible(main_proof.find_line_number(subproof.parent.first()), n)):
+                    return BadComment(f'The subproof {line_number1}-{line_number2} is not accessible at this line.')
+                
+                cit_subproofs.append(subproof)
+        
+        #Logic of each individual rule
+
         if rule_name == r'R':
-            for line_number in cit_line_numbers:
-                if not self.accessible(line_number, n):
-                    return False
-            return main_formula.eq_syntax(cit_formulas[0])
+            if main_formula.eq_syntax(cit_formulas[0]):
+                return GoodComment()
+            else:
+                return BadComment('The reiterated formula is different than the cited formula.')
         
         elif rule_name == r'\wedge E':
-            for line_number in cit_line_numbers:
-                if not self.accessible(line_number, n):
-                    return False
-            return main_formula.eq_syntax(cit_formulas[0].sub[0]) or main_formula.eq_syntax(cit_formulas[0].sub[1])
+            if main_formula.eq_syntax(cit_formulas[0].sub[0]) or main_formula.eq_syntax(cit_formulas[0].sub[1]):
+                return GoodComment()
+            else:
+                return BadComment('The deduced formula is different than both conjuncts of the cited formula.')
         
         elif rule_name == r'\wedge I':
-            for line_number in cit_line_numbers:
-                if not self.accessible(line_number, n):
-                    return False
-            return main_formula.eq_syntax(PropNode(r'\wedge',[cit_formulas[0], cit_formulas[1]])) or main_formula.eq_syntax(PropNode(r'\wedge',[cit_formulas[1], cit_formulas[0]]))
+            if main_formula.eq_syntax(PropNode(r'\wedge',[cit_formulas[0], cit_formulas[1]])) or main_formula.eq_syntax(PropNode(r'\wedge',[cit_formulas[1], cit_formulas[0]])):
+                return GoodComment()
+            else:
+                return BadComment('The deduced formula is not the conjunction of the two cited formulas.')
         
         elif rule_name == r'\to E':
-            for line_number in cit_line_numbers:
-                if not self.accessible(line_number, n):
-                    return False
+            impl_formulas = []
             for cit_formula in cit_formulas:
-                impl_formula = cit_formula
-                ant_formula = [form for form in cit_formulas if form!=cit_formula][0]
-                if impl_formula.name == r'\to' and impl_formula.sub[0].eq_syntax(ant_formula) and impl_formula.sub[1].eq_syntax(main_formula):
-                    return True
-            return False
+                if cit_formula.name == r'\to':
+                    impl_formulas.append(cit_formula)
+            
+            if len(impl_formulas)==0:
+                return BadComment('Neither cited formula is an implication.')
+            
+            final_impl_formula = None
+            final_ant_formula = None
+
+            for impl_formula in impl_formulas:
+                ant_formula = [form for form in cit_formulas if form!=impl_formula][0]
+                if impl_formula.sub[0].eq_syntax(ant_formula):
+                    final_impl_formula = impl_formula
+                    final_ant_formula = ant_formula
+            
+            if final_impl_formula is None:
+                return BadComment('Neither cited formula is the antecedent of the other.')
+                
+            if final_impl_formula.sub[1].eq_syntax(main_formula):
+                return GoodComment()
+            else:
+                return BadComment('The deduced formula is not the consequent of the relevant cited formula.')
+        
+        elif rule_name == r'\to I':
+            if not main_formula.name == r'\to':
+                return BadComment('The deduced formula is not an implication.')
+            elif not main_formula.sub[0].eq_syntax(cit_subproofs[0].first()):
+                return BadComment("The antecedent of the deduced formula is not the assumption of the cited subproof.")
+            elif not main_formula.sub[1].eq_syntax(cit_subproofs[0].last().formula):
+                return BadComment("The consequent of the deduced formula is not the last line of the cited subproof.")
+            else:
+                return GoodComment()
 
         
 
@@ -247,9 +309,6 @@ class Proof():
             return ProofError('rule not covered by check_line method')
 
             
-
-
-        
 
 
 
@@ -274,4 +333,4 @@ y.add_last(ProofLine(PropNode.parse(r'p'), Rule.parse(r'RAA 2-6')))
 z.add_last(ProofLine(PropNode.parse(r'p \wedge \neg p'), Rule.parse(r'\wedge I 2,5')))
 
 print(x)
-print(x.check_line(5))
+print(x.check_line(8))
