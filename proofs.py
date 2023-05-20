@@ -298,6 +298,101 @@ class Proof():
                 return BadComment("The consequent of the deduced formula is not the last line of the cited subproof.")
             else:
                 return GoodComment()
+        
+        elif rule_name == r'\leftrightarrow I':
+            if not main_formula.name == r'\leftrightarrow':
+                return BadComment('The deduced formula is not a biconditional.')
+            elif not (cit_subproofs[0].last().formula.eq_syntax(cit_subproofs[1].first())):
+                return BadComment('The second subproof does not begin with the last line of the first subproof.')
+            elif not (cit_subproofs[1].last().formula.eq_syntax(cit_subproofs[0].first())):
+                return BadComment('The second subproof does not end with the first line of the first subproof.')
+            elif not ((cit_subproofs[0].first().eq_syntax(main_formula.sub[0]) and cit_subproofs[0].last().formula.eq_syntax(main_formula.sub[1])) or (cit_subproofs[0].first().eq_syntax(main_formula.sub[1]) and cit_subproofs[0].last().formula.eq_syntax(main_formula.sub[0]))):
+                return BadComment('The subproofs do not begin and end with the conditionals of the deduced line.')
+            else:
+                return GoodComment()
+        
+        elif rule_name == r'\leftrightarrow E':
+            bicond_formulas = []
+            for cit_formula in cit_formulas:
+                if cit_formula.name == r'\leftrightarrow':
+                    bicond_formulas.append(cit_formula)
+            
+            if len(bicond_formulas) == 0:
+                return BadComment('Neither cited formula is a biconditional.')
+
+            final_bicond_formula = None
+            final_other_formula = None
+            for bicond_formula in bicond_formulas:
+                other_formula = [formula for formula in cit_formulas if formula != bicond_formula]
+                if bicond_formula.sub[0].eq_syntax(other_formula) or bicond_formula.sub[1].eq_syntax(other_formula):
+                    final_bicond_formula = bicond_formula
+                    final_other_formula = other_formula
+            
+            if not isinstance(final_bicond_formula, PropNode):
+                return BadComment('The cited biconditional does not have the other cited formula as either of its conditionals.')
+            
+            if not ((final_bicond_formula.sub[0].eq_syntax(final_other_formula) and final_bicond_formula.sub[1].eq_syntax(main_formula))or(final_bicond_formula.sub[1].eq_syntax(final_other_formula) and final_bicond_formula.sub[0].eq_syntax(main_formula))):
+                return 'The cited biconditional does not have as one conditional the cited line and as the other conditional the deduced line.'
+            
+            return GoodComment()
+        
+        elif rule_name == r'\neg E':
+            cit_formula = cit_formulas[0]
+            if not cit_formula.name == r'\neg':
+                return BadComment('The cited formula is not a negation.')
+            
+            if not main_formula.name == r'\to':
+                return BadComment('The deduced formula is not an implication.')
+            
+            if not (main_formula.sub[0].eq_syntax(cit_formula.sub[0])):
+                return BadComment('The unnegated version of the cited formula is not the antecedent of the deduced formula.')
+            
+            return GoodComment()
+        
+        elif rule_name == r'EFQ':
+            cit_formula = cit_formulas[0]
+            if not (cit_formula.name == r'\wedge' and (cit_formula.sub[0].eq_syntax(PropNode(r'\neg',[cit_formula.sub[1]])) or cit_formula.sub[1].eq_syntax(PropNode(r'\neg',[cit_formula.sub[0]])))):
+                return BadComment('The cited formula is the conjunction of a formula and its negation.')
+            
+            return GoodComment()
+        
+        elif rule_name == r'\bot E':
+            cit_formula = cit_formulas[0]
+            if not (cit_formula.name == r'\bot'):
+                return BadComment('The cited formula is not bottom.')
+            
+            return GoodComment()
+        
+        elif rule_name == r'\bot I':
+            if not (main_formula.name == r'\bot'):
+                return BadComment('The deduced formula is not bottom.')
+            
+            if not (cit_formulas[0].eq_syntax(PropNode(r'\neg',[cit_formulas[1]])) or cit_formulas[1].eq_syntax(PropNode(r'\neg',[cit_formulas[0]]))):
+                return GoodComment('Neither cited formula is the negation of the other.')
+
+            return GoodComment()
+        
+        elif rule_name == r'\neg I':
+            cit_subproof = cit_subproofs[0]
+
+            if not (main_formula.eq_syntax(PropNode(r'\neg', [cit_subproof.first()]))):
+                return BadComment("The deduced formula is not the negation of cited subproof's assumption.")
+            
+            if not(cit_subproof.last().formula.eq_syntax(PropNode(r'\bot', [])) or (cit_subproof.last().name == r'\wedge' and (cit_subproof.last().sub[0].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[1]])) or cit_subproof.last().sub[1].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[0]]))))):
+                return BadComment('The last formula of the cited subproof is not bottom or the conjunction of a formula and its negation.')
+            
+            return GoodComment()
+        
+        elif rule_name == r'RAA':
+            cit_subproof = cit_subproofs[0]
+
+            if not (cit_subproof.first().eq_syntax(PropNode(r'\neg', [main_formula]))):
+                return BadComment("The cited subproof's assumption is not the negation of deduced formula.")
+            
+            if not(cit_subproof.last().formula.eq_syntax(PropNode(r'\bot', [])) or (cit_subproof.last().name == r'\wedge' and (cit_subproof.last().sub[0].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[1]])) or cit_subproof.last().sub[1].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[0]]))))):
+                return BadComment('The last formula of the cited subproof is not bottom or the conjunction of a formula and its negation.')
+            
+            return GoodComment()
 
         
 
@@ -306,7 +401,7 @@ class Proof():
 
 
         if rule_name in rules:
-            return ProofError('rule not covered by check_line method')
+            return ProofError('rule not covered by check_line method, fix by editing Proof.check_line')
 
             
 

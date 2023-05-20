@@ -14,6 +14,7 @@ rules = {
     r'\bot E': '%s',
     r'\bot I': '%s, %s',
     r'RAA': '%s-%s',
+    r'EFQ': '%s',
     r'R': '%s',
 }
 
