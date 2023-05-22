@@ -194,7 +194,7 @@ class Proof():
     def check_line(self, n):
         main_line = self.find(n)
         if isinstance(main_line, PropNode):
-            return ProofError('checking assumption line')
+            return GoodComment()
         
         main_formula, rule_name, cit = main_line.formula, main_line.rule.name, main_line.rule.cit
         
@@ -393,15 +393,39 @@ class Proof():
                 return BadComment('The last formula of the cited subproof is not bottom or the conjunction of a formula and its negation.')
             
             return GoodComment()
-
         
+        elif rule_name == r'\vee I':
+            cit_formula = cit_formulas[0]
 
+            if not (main_formula.name == r'\vee'):
+                return BadComment('The deduced formula is not a disjunction.')
 
+            if main_formula.sub[0].eq_syntax(cit_formula) or main_formula.sub[1].eq_syntax(cit_formula):
+                return GoodComment()
+            else:
+                return BadComment('The cited formula is different than both disjuncts of the deduced formula.')
+            
+        elif rule_name == r'\vee E':
+            cit_formula = cit_formulas[0]
 
+            if not (cit_formula.name == r'\vee'):
+                return BadComment('The cited formula is not a disjunction.')
 
+            if not ((cit_formula.sub[0].eq_syntax(cit_subproofs[0].first()) and cit_formula.sub[1].eq_syntax(cit_subproofs[1].first())) or (cit_formula.sub[0].eq_syntax(cit_subproofs[1].first()) and cit_formula.sub[1].eq_syntax(cit_subproofs[0].first()))):
+                return BadComment('The assumptions of the two cited subproofs are not the same as the disjuncts of the cited disjunction.')
+
+            if not (cit_subproofs[0].last().formula.eq_syntax(cit_subproofs[1].last().formula)):
+                return BadComment('The last line of the two cited subproofs are not the same.')
+            
+            if not (cit_subproofs[0].last().formula.eq_syntax(main_formula)):
+                return BadComment('The deduced formula is not the same as the last line of the two cited subproofs.')
+            
+            return GoodComment()
 
         if rule_name in rules:
-            return ProofError('rule not covered by check_line method, fix by editing Proof.check_line')
+            raise ProofError('rule not covered by check_line method, fix by editing Proof.check_line')
+        
+        raise ProofError('ILLEGAL RULE ALLOWED THROUGH PARSING FUNCTION!!!!!')
 
             
 

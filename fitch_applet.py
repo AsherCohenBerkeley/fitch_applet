@@ -160,6 +160,8 @@ def set_up():
 
     st.session_state.main_proof = None
 
+    st.session_state.overall_comment = None
+
 if "main_proof" not in st.session_state:
     set_up()
 
@@ -192,6 +194,10 @@ with col3:
 
 if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
+    ##############################
+    # DISPLAY PROOF AND COMMENTS #
+    ##############################
+
     if st.session_state.main_proof is None:
         st.session_state.main_proof = Proof(st.session_state.textboxes['assumptions_textbox']['value'])
         st.session_state.current_subproof = st.session_state.main_proof
@@ -200,7 +206,37 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
     st.latex(st.session_state.main_proof.latex())
     st.session_state.current_subproof.remove_last()
 
-    st.markdown('')
+    col1, col2 = st.columns([3,1])
+    
+    with col2:
+
+        ###
+        # STILL TO DO: fix bug with overall_comment, test all rules (index error with \wedge E?), set up textbox for desired conclusion and incorporate into checking system
+        ###
+
+        st.markdown('')
+
+        def check_proof_button():
+            comments = []
+            for line_number in range(1, st.session_state.main_proof.n_lines + 1):
+                comments.append(st.session_state.main_proof.check_line(line_number))
+            
+            bad_comments = [(i+1, comment) for (i, comment) in enumerate(comments) if isinstance(comment, BadComment)]
+
+            if len(bad_comments) == 0:
+                st.session_state.overall_comment = 'All lines look good! This proof is correct. ✅'
+            else:
+                st.session_state.overall_comment = "Unfortunately, this proof is not correct. Here are some specific errors.\n"
+                for (line_number, comment) in bad_comments:
+                    st.session_state.overall_comment += f"Line {line_number}: {comment.text}\n"
+            
+        st.button('Check Proof', on_click=check_proof_button, disabled = not (st.session_state.current_subproof == st.session_state.main_proof and len(st.session_state.main_proof.subproofs) > 0))
+
+    if isinstance(st.session_state.overall_comment, str):
+        st.markdown('')
+        st.markdown(st.session_state.overall_comment)
+    else:
+        st.markdown('')
 
     ###################
     # CREATE NEW LINE #

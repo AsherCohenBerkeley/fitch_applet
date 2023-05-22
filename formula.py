@@ -11,7 +11,7 @@ class PropNode():
     
     def eq_syntax(self, other):
         if not isinstance(other, PropNode):
-            return False
+            raise LogicError('trying to check eq_syntax for something other than a PropNode')
         if not (self.name == other.name):
             return False
         if len(self.sub) != len(other.sub):

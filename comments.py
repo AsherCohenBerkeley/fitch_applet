@@ -1,9 +1,9 @@
 class Comment():
-    def __init__(self, comment):
-        self.comment = comment
+    def __init__(self, text):
+        self.text = text
     
     def __repr__(self):
-        return self.comment
+        return self.text
 
 class GoodComment(Comment):
     def __init__(self):
