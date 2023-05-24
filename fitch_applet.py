@@ -178,10 +178,6 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
     
     with col2:
 
-        ###
-        # STILL TO DO: test all rules (index error with \wedge E?)
-        ###
-
         st.markdown('')
 
         def check_proof_button():

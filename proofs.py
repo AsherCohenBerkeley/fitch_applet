@@ -252,16 +252,23 @@ class Proof():
                 return BadComment('The reiterated formula is different than the cited formula.')
         
         elif rule_name == r'\wedge E':
-            if main_formula.eq_syntax(cit_formulas[0].sub[0]) or main_formula.eq_syntax(cit_formulas[0].sub[1]):
-                return GoodComment()
-            else:
+            cit_formula = cit_formulas[0]
+            if not cit_formula.name == r'\wedge':
+                return BadComment('The cited formula is not a conjunction.')
+            
+            if not main_formula.eq_syntax(cit_formula.sub[0]) or main_formula.eq_syntax(cit_formula.sub[1]):
                 return BadComment('The deduced formula is different than both conjuncts of the cited formula.')
+            
+            return GoodComment()
         
         elif rule_name == r'\wedge I':
+            if not main_formula.name == r'\wedge':
+                return BadComment('The deduced formula is not a conjunction.')
+            
             if main_formula.eq_syntax(PropNode(r'\wedge',[cit_formulas[0], cit_formulas[1]])) or main_formula.eq_syntax(PropNode(r'\wedge',[cit_formulas[1], cit_formulas[0]])):
-                return GoodComment()
-            else:
                 return BadComment('The deduced formula is not the conjunction of the two cited formulas.')
+            
+            return GoodComment()
         
         elif rule_name == r'\to E':
             impl_formulas = []
