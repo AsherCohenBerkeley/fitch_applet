@@ -58,25 +58,6 @@ class PropNode():
             if len(string) > len(conn) and string[:len(conn)] == conn:
                 return PropNode(conn, [PropNode.parse(string[len(conn):])])
         
-        if len(string)>1 and string[1] == "\\":
-            first = string[:1]
-            conn_rest = string[1:]
-
-            if len(conn_rest) == 0:
-                return PropNode.parse(first[1:-1])
-            
-            main_conn = None
-            rest = None
-            for conn in binary:
-                if len(conn_rest) > len(conn) and conn_rest[0:len(conn)] == conn:
-                    main_conn = conn_rest[:len(conn)]
-                    rest = conn_rest[len(conn):]
-                    break
-            if main_conn == None:
-                raise ParsingError(ParsingError.note)
-
-            return PropNode(main_conn, [PropNode.parse(first), PropNode.parse(rest)])
-
         if len(string)>0 and string[0] == '(':
             p_balance = 1
             index = 0
@@ -113,5 +94,24 @@ class PropNode():
                 raise ParsingError(ParsingError.note)
 
             return PropNode(main_conn, [PropNode.parse(first), PropNode.parse(rest)])
-        
+
+        if len(string)>1 and string[1] == "\\":
+            first = string[:1]
+            conn_rest = string[1:]
+
+            if len(conn_rest) == 0:
+                return PropNode.parse(first[1:-1])
+            
+            main_conn = None
+            rest = None
+            for conn in binary:
+                if len(conn_rest) > len(conn) and conn_rest[0:len(conn)] == conn:
+                    main_conn = conn_rest[:len(conn)]
+                    rest = conn_rest[len(conn):]
+                    break
+            if main_conn == None:
+                raise ParsingError(ParsingError.note)
+
+            return PropNode(main_conn, [PropNode.parse(first), PropNode.parse(rest)])
+
         raise ParsingError(ParsingError.note)
