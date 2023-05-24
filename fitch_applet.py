@@ -92,13 +92,22 @@ def assumptions_display(assumptions):
 
 assumptions_textbox = TextBox(
     "assumptions_textbox",
-    "Proof Assumptions",
+    "Premises",
     [], 
     lambda string: list(map(PropNode.parse, string.split(','))),
     ParsingError,
     assumptions_display,
     custom_error_message="We can't parse the above formulas. Are you sure they're written in LaTeX and separated by commas?"
 )
+
+conclusion_textbox = TextBox(
+    "conclusion_textbox",
+    "Conclusion", 
+    None, 
+    PropNode.parse, 
+    ParsingError, 
+    PropNode.latex
+    )
 
 new_line_textbox1 = TextBox(
     "new_line_textbox1",
@@ -167,30 +176,28 @@ if "main_proof" not in st.session_state:
 
 #st.subheader("Step 1: Choose Assumptions")
 
-######################
-# CHOOSE ASSUMPTIONS #
-######################
+#####################################
+# CHOOSE ASSUMPTIONS AND CONCLUSION #
+#####################################
 
-o1, o2, o3, o4 = 3, 0.4, 1, 0.5
-
-col1, col2, col3, col4 = st.columns([o1, o2, o3, o4])
+col1, col2, col3 = st.columns([4, 2, 1.6])
 
 with col1:
 
     assumptions_textbox.deploy()
 
+with col2:
+
+    conclusion_textbox.deploy()
+
 with col3:
     st.markdown("")
-
-    if len(st.session_state.textboxes['assumptions_textbox']['value']) == 1:
-        button_text = f"Proceed with {len(st.session_state.textboxes['assumptions_textbox']['value'])} assumption?"
-    else:
-        button_text = f"Proceed with {len(st.session_state.textboxes['assumptions_textbox']['value'])} assumptions?"
         
     def when_assumptions_clicked():
         st.session_state.textboxes['assumptions_textbox']['disabled'] = True
+        st.session_state.textboxes['conclusion_textbox']['disabled'] = True
 
-    st.button(button_text, on_click = when_assumptions_clicked, disabled=isinstance(st.session_state.textboxes['assumptions_textbox']['error'], Exception) or st.session_state.textboxes['assumptions_textbox']['disabled'])
+    st.button('Start Natural Deduction Proof', on_click = when_assumptions_clicked, disabled=isinstance(st.session_state.textboxes['assumptions_textbox']['error'], Exception) or st.session_state.textboxes['assumptions_textbox']['disabled'] or (not isinstance(st.session_state.textboxes['conclusion_textbox']['value'], PropNode)))
 
 if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
@@ -211,7 +218,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
     with col2:
 
         ###
-        # STILL TO DO: better layout for errors, set up textbox for desired conclusion and incorporate into checking system, test all rules (index error with \wedge E?)
+        # STILL TO DO: test all rules (index error with \wedge E?)
         ###
 
         st.markdown('')
@@ -222,6 +229,9 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
                 comments.append(st.session_state.main_proof.check_line(line_number))
             
             st.session_state.bad_comments = [(i+1, comment) for (i, comment) in enumerate(comments) if isinstance(comment, BadComment)]
+
+            if not st.session_state.main_proof.find(st.session_state.main_proof.n_lines).formula.eq_syntax(st.session_state.textboxes["conclusion_textbox"]["value"]):
+                st.session_state.bad_comments += [(st.session_state.main_proof.n_lines, BadComment('The proof does not end with the desired conclusion.'))]
             
         st.button('Check Proof', on_click=check_proof_button, disabled = not (st.session_state.current_subproof == st.session_state.main_proof and len(st.session_state.main_proof.subproofs) > 0))
 
@@ -254,6 +264,8 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
         new_line_textbox2.deploy()
 
     st.markdown('')
+
+    o1, o2, o3, o4 = 3, 0.4, 1, 0.5
 
     x3, x4 = 1.5, 0.1
 
