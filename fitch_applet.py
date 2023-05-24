@@ -5,46 +5,7 @@ from proofs import *
 
 st.title('Philosophy W12A Fitch-Style Proofs')
 
-# st.latex(r"""
-# \def\arraystretch{1.5}
-# \begin{array}{l l}
-# \begin{array}{l}
-# 1 \\
-# 2 \\
-# 3 \\
-# 4 \\
-# 5 \\
-# 6 \\
-# 7 \\
-# 8 \\
-# \end{array}
-# \begin{array}{|l}
-#     \begin{array}{|l}
-#     (p \to q) \to p  \\ \hline
-#         \begin{array}{|l}
-#         \neg p  \\ \hline
-#         p \to q   \\
-#         (p \to q) \to p  \\
-#         p \\
-#         p \wedge \neg p 
-#         \end{array}  \\ 
-#     p
-#     \end{array}  \\ 
-# ((p \to q) \to p) \to p \\
-# \end{array}
-# &
-# \begin{array}{l}
-#  \\
-#  \\
-# \neg E \; 2 \\
-# R \; 1 \\
-# \to \! E \; 3, 4 \\
-# \wedge I \; 2,5 \\
-# RAA \; 2\text{-}6 \\
-# \leftrightarrow \! I \; 1\text{-}7 \\
-# \end{array}
-# \end{array}
-# """)
+st.markdown('')
 
 class TextBox():
     all_textboxes = []
