@@ -435,21 +435,21 @@ class Proof():
 # A GOOD TEST CASE #
 ####################
 
-z = Proof([PropNode.parse(r'\neg p')])
-z.add_last(ProofLine(PropNode.parse(r'p \to q'), Rule.parse(r'\neg E 2')))
-z.add_last(ProofLine(PropNode.parse(r'(p \to q) \to p'), Rule.parse(r'R 1')))
-z.add_last(ProofLine(PropNode.parse(r'p'), Rule.parse(r'\to E 3,4')))
+# z = Proof([PropNode.parse(r'\neg p')])
+# z.add_last(ProofLine(PropNode.parse(r'p \to q'), Rule.parse(r'\neg E 2')))
+# z.add_last(ProofLine(PropNode.parse(r'(p \to q) \to p'), Rule.parse(r'R 1')))
+# z.add_last(ProofLine(PropNode.parse(r'p'), Rule.parse(r'\to E 3,4')))
 
-y = Proof([PropNode.parse(r'(p \to q) \to p')])
+# y = Proof([PropNode.parse(r'(p \to q) \to p')])
 
-x = Proof([])
-x.add_last(y)
-x.add_last(ProofLine(PropNode.parse(r'((p \to q) \to p) \to p'), Rule.parse(r'\to I 1-7')))
+# x = Proof([])
+# x.add_last(y)
+# x.add_last(ProofLine(PropNode.parse(r'((p \to q) \to p) \to p'), Rule.parse(r'\to I 1-7')))
 
-y.add_last(z)
-y.add_last(ProofLine(PropNode.parse(r'p'), Rule.parse(r'RAA 2-6')))
+# y.add_last(z)
+# y.add_last(ProofLine(PropNode.parse(r'p'), Rule.parse(r'RAA 2-6')))
 
-z.add_last(ProofLine(PropNode.parse(r'p \wedge \neg p'), Rule.parse(r'\wedge I 2,5')))
+# z.add_last(ProofLine(PropNode.parse(r'p \wedge \neg p'), Rule.parse(r'\wedge I 2,5')))
 
-print(x)
-print(x.check_line(8))
+# print(x)
+# print(x.check_line(8))

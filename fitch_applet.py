@@ -160,7 +160,7 @@ def set_up():
 
     st.session_state.main_proof = None
 
-    st.session_state.overall_comment = None
+    st.session_state.bad_comments = None
 
 if "main_proof" not in st.session_state:
     set_up()
@@ -221,22 +221,19 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
             for line_number in range(1, st.session_state.main_proof.n_lines + 1):
                 comments.append(st.session_state.main_proof.check_line(line_number))
             
-            bad_comments = [(i+1, comment) for (i, comment) in enumerate(comments) if isinstance(comment, BadComment)]
-
-            if len(bad_comments) == 0:
-                st.session_state.overall_comment = 'All lines look good! This proof is correct. ✅'
-            else:
-                st.session_state.overall_comment = "Unfortunately, this proof is not correct. Here are some specific errors.\n"
-                for (line_number, comment) in bad_comments:
-                    st.session_state.overall_comment += f"Line {line_number}: {comment.text}\n"
+            st.session_state.bad_comments = [(i+1, comment) for (i, comment) in enumerate(comments) if isinstance(comment, BadComment)]
             
         st.button('Check Proof', on_click=check_proof_button, disabled = not (st.session_state.current_subproof == st.session_state.main_proof and len(st.session_state.main_proof.subproofs) > 0))
 
-    if isinstance(st.session_state.overall_comment, str):
-        st.markdown('')
-        st.markdown(st.session_state.overall_comment)
-    else:
-        st.markdown('')
+    if isinstance(st.session_state.bad_comments, list):
+        if len(st.session_state.bad_comments) == 0:
+            st.markdown('All lines look good! This proof is correct. :white_check_mark:')
+        else:
+            st.markdown("Unfortunately, this proof is not correct. Here are some specific errors.")
+            col1, col2 = st.columns([1, 10])
+            with col2:
+                for (line_number, comment) in st.session_state.bad_comments:
+                    st.markdown(f"Line {line_number}: {comment.text.lower()}")
 
     ###################
     # CREATE NEW LINE #
@@ -272,12 +269,12 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
         def add_line_button(formula, rule):
             st.session_state.current_subproof.add_last(ProofLine(formula, rule))
-            st.session_state.overall_comment = None
+            st.session_state.bad_comments = None
         st.button('Add Line', on_click=add_line_button, args=(st.session_state.textboxes["new_line_textbox1"]['value'], st.session_state.textboxes["new_line_textbox2"]['value']), disabled = not formula_and_rule_in_place)
         
         def delete_last_line_button():
             st.session_state.current_subproof = st.session_state.current_subproof.remove_last()
-            st.session_state.overall_comment = None
+            st.session_state.bad_comments = None
         st.button('Delete Last Line', on_click=delete_last_line_button, disabled = len(st.session_state.current_subproof.subproofs) == 0)
     
     st.markdown('')
@@ -331,7 +328,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
         st.markdown('')
         def change_line_button(line_number, formula, rule):
             st.session_state.main_proof.change(line_number, formula, rule)
-            st.session_state.overall_comment = None
+            st.session_state.bad_comments = None
             
         st.button("Change Line", 
                     on_click=change_line_button, 
@@ -373,7 +370,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
             new_subproof = Proof([formula])
             st.session_state.current_subproof.add_last(new_subproof)
             st.session_state.current_subproof = new_subproof
-            st.session_state.overall_comment = None
+            st.session_state.bad_comments = None
         st.button("Start New Subproof", 
                   on_click=start_new_subproof_button, 
                   args=(st.session_state.textboxes['subproof_assumption_textbox']['value'],),
@@ -382,7 +379,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
         def delete_current_subproof_button():
             st.session_state.current_subproof.self_delete()
             st.session_state.current_subproof = st.session_state.current_subproof.parent
-            st.session_state.overall_comment = None
+            st.session_state.bad_comments = None
             
         st.button("Delete Current Subproof", 
                   on_click=delete_current_subproof_button, 
@@ -390,7 +387,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
         
         def exit_current_subproof_button():
             st.session_state.current_subproof = st.session_state.current_subproof.parent
-            st.session_state.overall_comment = None
+            st.session_state.bad_comments = None
             
         st.button("Exit Current Subproof", 
                   on_click=exit_current_subproof_button, 
