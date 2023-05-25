@@ -1,7 +1,7 @@
 from connectives import *
 
 class ParsingError(LogicError):
-    note = "We couldn't parse the above formula. Are you sure it's written in LaTeX?"
+    note = "We couldn't parse the above formula. Are you sure it's written in LaTeX with lowercase letters?"
     pass
 
 class PropNode():
@@ -48,15 +48,14 @@ class PropNode():
         string = string.replace(r'\rightarrow', r'\to')
 
         if len(string) == 1:
-            return PropNode(string, [])
+            if (ord('a') <= ord(string) <= ord('z')):
+                return PropNode(string.lower(), [])
+            else:
+                raise ParsingError(ParsingError.note)
         
         for conn in zeroary:
             if string == conn:
                 return PropNode(conn, [])
-
-        for conn in unary:
-            if len(string) > len(conn) and string[:len(conn)] == conn:
-                return PropNode(conn, [PropNode.parse(string[len(conn):])])
         
         if len(string)>0 and string[0] == '(':
             p_balance = 1
@@ -95,23 +94,20 @@ class PropNode():
 
             return PropNode(main_conn, [PropNode.parse(first), PropNode.parse(rest)])
 
-        if len(string)>1 and string[1] == "\\":
-            first = string[:1]
-            conn_rest = string[1:]
+        for conn in binary:
+            if len(string)>1 and (conn in string):
+                idx = string.index(conn)
+                first = string[:idx]
+                main_conn = string[idx:idx+len(conn)]
+                rest = string[idx+len(conn):]
 
-            if len(conn_rest) == 0:
-                return PropNode.parse(first[1:-1])
-            
-            main_conn = None
-            rest = None
-            for conn in binary:
-                if len(conn_rest) > len(conn) and conn_rest[0:len(conn)] == conn:
-                    main_conn = conn_rest[:len(conn)]
-                    rest = conn_rest[len(conn):]
-                    break
-            if main_conn == None:
-                raise ParsingError(ParsingError.note)
+                if len(first) == 0 or len(rest)==0:
+                    return ParsingError(ParsingError.note)
 
-            return PropNode(main_conn, [PropNode.parse(first), PropNode.parse(rest)])
+                return PropNode(main_conn, [PropNode.parse(first), PropNode.parse(rest)])
+        
+        for conn in unary:
+            if len(string) > len(conn) and string[:len(conn)] == conn:
+                return PropNode(conn, [PropNode.parse(string[len(conn):])])
 
         raise ParsingError(ParsingError.note)
