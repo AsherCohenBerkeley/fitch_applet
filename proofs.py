@@ -256,7 +256,7 @@ class Proof():
             if not cit_formula.name == r'\wedge':
                 return BadComment('The cited formula is not a conjunction.')
             
-            if not main_formula.eq_syntax(cit_formula.sub[0]) or main_formula.eq_syntax(cit_formula.sub[1]):
+            if not (main_formula.eq_syntax(cit_formula.sub[0]) or main_formula.eq_syntax(cit_formula.sub[1])):
                 return BadComment('The deduced formula is different than both conjuncts of the cited formula.')
             
             return GoodComment()
@@ -265,7 +265,7 @@ class Proof():
             if not main_formula.name == r'\wedge':
                 return BadComment('The deduced formula is not a conjunction.')
             
-            if main_formula.eq_syntax(PropNode(r'\wedge',[cit_formulas[0], cit_formulas[1]])) or main_formula.eq_syntax(PropNode(r'\wedge',[cit_formulas[1], cit_formulas[0]])):
+            if not (main_formula.eq_syntax(PropNode(r'\wedge',[cit_formulas[0], cit_formulas[1]])) or main_formula.eq_syntax(PropNode(r'\wedge',[cit_formulas[1], cit_formulas[0]]))):
                 return BadComment('The deduced formula is not the conjunction of the two cited formulas.')
             
             return GoodComment()
@@ -442,21 +442,19 @@ class Proof():
 # A GOOD TEST CASE #
 ####################
 
-# z = Proof([PropNode.parse(r'\neg p')])
-# z.add_last(ProofLine(PropNode.parse(r'p \to q'), Rule.parse(r'\neg E 2')))
-# z.add_last(ProofLine(PropNode.parse(r'(p \to q) \to p'), Rule.parse(r'R 1')))
-# z.add_last(ProofLine(PropNode.parse(r'p'), Rule.parse(r'\to E 3,4')))
+# z = Proof([PropNode.parse(r'q')])
+# z.add_last(ProofLine(PropNode.parse(r'p \wedge q'), Rule.parse(r'\wedge I 2,4')))
+# z.add_last(ProofLine(PropNode.parse(r'((p \wedge q) \vee (p \wedge r))'), Rule.parse(r'\vee I 5')))
 
-# y = Proof([PropNode.parse(r'(p \to q) \to p')])
+# y = Proof([PropNode.parse(r'r')])
+# y.add_last(ProofLine(PropNode.parse(r'p \wedge r'), Rule.parse(r'\wedge I 2,7')))
+# y.add_last(ProofLine(PropNode.parse(r'((p \wedge q) \vee (p \wedge r))'), Rule.parse(r'\vee I 8')))
 
-# x = Proof([])
+# x = Proof([PropNode.parse(r'p \wedge (q \vee r)')])
+# x.add_last(ProofLine(PropNode.parse(r'p'), Rule.parse(r'\wedge E 1')))
+# x.add_last(ProofLine(PropNode.parse(r'q \vee r'), Rule.parse(r'\wedge E 1')))
+# x.add_last(z)
 # x.add_last(y)
-# x.add_last(ProofLine(PropNode.parse(r'((p \to q) \to p) \to p'), Rule.parse(r'\to I 1-7')))
+# x.add_last(ProofLine(PropNode.parse(r'((p \wedge q) \vee (p \wedge r))'), Rule.parse(r'\vee E 3,4-6,7-9')))
 
-# y.add_last(z)
-# y.add_last(ProofLine(PropNode.parse(r'p'), Rule.parse(r'RAA 2-6')))
-
-# z.add_last(ProofLine(PropNode.parse(r'p \wedge \neg p'), Rule.parse(r'\wedge I 2,5')))
-
-# print(x)
-# print(x.check_line(8))
+# print(x.check_line(5))
