@@ -57,11 +57,12 @@ class PropNode():
             if string == conn:
                 return PropNode(conn, [])
         
-        if len(string)>0 and string[0] == '(':
+        if '(' in string:
+            starting_index = string.index('(')
             p_balance = 1
-            index = 0
-            for i, char in enumerate(string):
-                if i == 0: continue
+            index = starting_index
+            for char in string[starting_index+1:]:
+                index += 1
 
                 if char == '(':
                     p_balance += 1
@@ -71,28 +72,49 @@ class PropNode():
                 if p_balance < 0:
                     raise ParsingError(ParsingError.note)
                 if p_balance == 0:
-                    index = i
                     break
-                if i == len(string)-1:
+                if index == len(string)-1:
                     raise ParsingError(ParsingError.note)
             
-            first = string[:index+1]
+            if index == starting_index:
+                raise ParsingError(ParsingError.note)
+            
+            first_conn = string[:starting_index]
+            mid = string[starting_index:index+1]
             conn_rest = string[index+1:]
 
-            if len(conn_rest) == 0:
-                return PropNode.parse(first[1:-1])
+            output = PropNode.parse(mid[1:-1])
             
-            main_conn = None
-            rest = None
-            for conn in binary:
-                if len(conn_rest) > len(conn) and conn_rest[0:len(conn)] == conn:
-                    main_conn = conn_rest[:len(conn)]
-                    rest = conn_rest[len(conn):]
-                    break
-            if main_conn == None:
-                raise ParsingError(ParsingError.note)
+            if len(first_conn) > 0:
+                unary_conn = None
+                for conn in unary:
+                    if first_conn == conn:
+                        unary_conn = conn
+                        output = PropNode(unary_conn, [output])
+                conn_before = None
+                first = None
+                for conn in binary:
+                    if len(first_conn) > len(conn) and first_conn[-len(conn):] == conn:
+                        conn_before = first_conn[-len(conn):]
+                        first = first_conn[:-len(conn)]
+                        output = PropNode(conn_before, [PropNode.parse(first), output])
+                        break
+                if unary_conn == None and conn_before == None:
+                    raise ParsingError(ParsingError.note)
 
-            return PropNode(main_conn, [PropNode.parse(first), PropNode.parse(rest)])
+            if len(conn_rest) > 0:
+                conn_after = None
+                rest = None
+                for conn in binary:
+                    if len(conn_rest) > len(conn) and conn_rest[:len(conn)] == conn:
+                        conn_after = conn_rest[:len(conn)]
+                        rest = conn_rest[len(conn):]
+                        output = PropNode(conn_after, [output, PropNode.parse(rest)])
+                        break
+                if conn_after == None:
+                    raise ParsingError(ParsingError.note)
+            
+            return output
 
         for conn in binary:
             if len(string)>1 and (conn in string):
@@ -111,3 +133,5 @@ class PropNode():
                 return PropNode(conn, [PropNode.parse(string[len(conn):])])
 
         raise ParsingError(ParsingError.note)
+
+PropNode.parse(r'p \to (q \wedge r)')
