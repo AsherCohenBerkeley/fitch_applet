@@ -1,9 +1,12 @@
 import streamlit as st
-from formula import *
-from rules import *
-from proofs import *
+from st_pages import add_indentation
+from prop.formula import *
+from prop.rules import *
+from prop.proofs import *
 
-st.title('Philosophy W12A Fitch-Style Proofs')
+add_indentation()
+
+st.title('Fitch Proofs for Propositional Logic')
 
 st.markdown('')
 

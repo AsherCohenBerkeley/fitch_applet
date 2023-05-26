@@ -1,5 +1,5 @@
-from lines import *
-from comments import *
+from prop.lines import *
+from prop.comments import *
 
 class ProofError(LogicError):
     pass

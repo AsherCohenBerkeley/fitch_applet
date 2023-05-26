@@ -1,4 +1,4 @@
-from connectives import *
+from prop.connectives import *
 
 rules = {
     r'\wedge E': '%s',

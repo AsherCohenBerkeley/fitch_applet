@@ -1,5 +1,5 @@
-from formula import *
-from rules import *
+from prop.formula import *
+from prop.rules import *
 
 class LineError(LogicError):
     pass
