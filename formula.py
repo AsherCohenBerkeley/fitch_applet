@@ -133,5 +133,3 @@ class PropNode():
                 return PropNode(conn, [PropNode.parse(string[len(conn):])])
 
         raise ParsingError(ParsingError.note)
-
-PropNode.parse(r'p \to (q \wedge r)')
