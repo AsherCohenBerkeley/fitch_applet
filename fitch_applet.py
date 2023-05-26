@@ -132,6 +132,8 @@ def set_up():
 
     st.session_state.bad_comments = None
 
+    st.session_state.reached_conclusion = None
+
 if "main_proof" not in st.session_state:
     set_up()
 
@@ -187,14 +189,15 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
             
             st.session_state.bad_comments = [(i+1, comment) for (i, comment) in enumerate(comments) if isinstance(comment, BadComment)]
 
-            if not st.session_state.main_proof.find(st.session_state.main_proof.n_lines).formula.eq_syntax(st.session_state.textboxes["conclusion_textbox"]["value"]):
-                st.session_state.bad_comments += [(st.session_state.main_proof.n_lines, BadComment('The proof does not end with the desired conclusion.'))]
+            st.session_state.reached_conclusion = st.session_state.main_proof.find(st.session_state.main_proof.n_lines).formula.eq_syntax(st.session_state.textboxes["conclusion_textbox"]["value"])
             
         st.button('Check Proof', on_click=check_proof_button, disabled = not (st.session_state.current_subproof == st.session_state.main_proof and len(st.session_state.main_proof.subproofs) > 0))
 
     if isinstance(st.session_state.bad_comments, list):
-        if len(st.session_state.bad_comments) == 0:
+        if len(st.session_state.bad_comments) == 0 and st.session_state.reached_conclusion:
             st.markdown('All lines look good! This proof is correct. :white_check_mark:')
+        elif len(st.session_state.bad_comments) == 0 and not st.session_state.reached_conclusion:
+            st.markdown("The proof is correct so far! You just haven't reached the desired conclusion yet.")
         else:
             st.markdown("Unfortunately, this proof is not correct. Here are some specific errors.")
             col1, col2 = st.columns([1, 10])
