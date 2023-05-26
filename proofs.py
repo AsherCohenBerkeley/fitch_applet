@@ -304,7 +304,7 @@ class Proof():
             final_bicond_formula = None
             final_other_formula = None
             for bicond_formula in bicond_formulas:
-                other_formula = [formula for formula in cit_formulas if formula != bicond_formula]
+                other_formula = [formula for formula in cit_formulas if formula != bicond_formula][0]
                 if bicond_formula.sub[0].eq_syntax(other_formula) or bicond_formula.sub[1].eq_syntax(other_formula):
                     final_bicond_formula = bicond_formula
                     final_other_formula = other_formula
@@ -432,3 +432,10 @@ class Proof():
 # x.add_last(DeductionLine(PropNode.parse(r'((p \wedge q) \vee (p \wedge r))'), Rule.parse(r'\vee E 3,4-6,7-9')))
 
 # print(x.check_line(5))
+
+y = Proof([AssumptionLine(PropNode.parse(r'q'))])
+y.add_last(DeductionLine(PropNode.parse(r'p'), Rule.parse(r'\leftrightarrow E 1,2')))
+
+x = Proof([AssumptionLine(PropNode.parse(r'p \leftrightarrow q'))])
+x.add_last(y)
+x.check_line(3)
