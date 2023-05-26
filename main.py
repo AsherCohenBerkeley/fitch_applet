@@ -1,12 +1,12 @@
 import streamlit as st
-
 from st_pages import Page, Section, show_pages, add_page_title
 
-# Optional -- adds the title and icon to the current page
-st.title('Philosophy W12A Fitch-Style Proof Checker')
+st.title('W12A Fitch-Style Proof Applet')
 
-# Specify what pages should be shown in the sidebar, and what their titles and icons
-# should be
+col1, col2 = st.columns([1,1])
+with col2:
+    st.subheader('by Asher Cohen')
+
 show_pages(
     [
         Page("get_started.py", "Getting Started", ":books:"),
