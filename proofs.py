@@ -1,41 +1,17 @@
-from formula import *
-from rules import *
+from lines import *
 from comments import *
 
 class ProofError(LogicError):
     pass
-
-class Blank():
-    def __init__(self):
-        pass
-
-    def latex(self):
-        return ''
-
-class ProofLine():
-    def __init__(self, formula, rule):
-        if not (isinstance(formula, Blank) or isinstance(formula, PropNode)):
-            raise ProofError('trying to create proofline with syntactically incorrect formula')
-        if not (isinstance(rule, Blank) or isinstance(rule, Rule)):
-            raise ProofError('trying to create proofline with syntactically incorrect rule')
-        self.formula = formula
-        self.rule = rule
-        self.parent_proof = None
-    
-    def __repr__(self):
-        return f'ProofLine({self.formula.__repr__()}, {self.rule.__repr__()})'
-    
-    def change(self, formula, rule):
-        self.formula = formula
-        self.rule = rule
 
 class Proof():
     def __init__(self, assumptions):
         self.assumptions = []
 
         for a in assumptions:
-            if not isinstance(a, PropNode):
+            if not isinstance(a, AssumptionLine):
                 raise ProofError('wrong type for assumption')
+            a.parent_proof = self
             self.assumptions.append(a)
 
         self.n_lines = len(self.assumptions)
@@ -46,10 +22,10 @@ class Proof():
         def aux(self, n):
             output = ''
             for a in self.assumptions:
-                output += '    '*n+ a.latex() + '\n'
+                output += '    '*n+ a.formula.latex() + '\n'
             output += '    '*n + '-----\n'
             for subproof in self.subproofs:
-                if isinstance(subproof, ProofLine):
+                if isinstance(subproof, DeductionLine):
                     output += ('    '*n + subproof.formula.latex() + ' || ' +  subproof.rule.latex() + '\n') 
                 elif isinstance(subproof, Proof):
                     output += aux(subproof, n+1)
@@ -70,12 +46,12 @@ class Proof():
             output += r"\begin{array}{|l}"+ '\n'
 
             for a in self.assumptions:
-                output += a.latex() + r'\\'+ '\n'
+                output += a.formula.latex() + r'\\'+ '\n'
             if len(self.assumptions) > 0:
                 output += r'\hline'+ '\n'
             
             for subproof in self.subproofs:
-                if isinstance(subproof, ProofLine):
+                if isinstance(subproof, DeductionLine):
                     output += subproof.formula.latex()
                 else:
                     output += second(subproof)
@@ -90,11 +66,11 @@ class Proof():
             if self.parent == None:
                 output += r'\begin{array}{l}'+ '\n'
 
-            for a in self.assumptions:
+            for _ in self.assumptions:
                 output += r'\\'+ '\n'
             
             for subproof in self.subproofs:
-                if isinstance(subproof, ProofLine):
+                if isinstance(subproof, DeductionLine):
                     output += subproof.rule.latex() + r'\\'+ '\n'
                 else:
                     output += third(subproof)
@@ -112,7 +88,7 @@ class Proof():
             self.parent.update_n_lines(n_new_lines)
 
     def add_last(self, subproof):
-        if isinstance(subproof, ProofLine):
+        if isinstance(subproof, DeductionLine):
             n_new_lines = 1
             subproof.parent_proof = self  
         elif isinstance(subproof, Proof):
@@ -127,7 +103,7 @@ class Proof():
         if len(self.subproofs) == 0:
             raise ProofError('trying to remove lines from main proof when there are no lines to remove')
         
-        if isinstance(self.subproofs[-1], ProofLine):
+        if isinstance(self.subproofs[-1], DeductionLine):
             self.subproofs = self.subproofs[:-1]
             self.update_n_lines(-1)
             return self
@@ -146,7 +122,7 @@ class Proof():
         output = []
         output += self.assumptions
         for subproof in self.subproofs:
-            if isinstance(subproof, ProofLine):
+            if isinstance(subproof, DeductionLine):
                 output.append(subproof)
             else:
                 output += subproof.pure_list()
@@ -158,8 +134,8 @@ class Proof():
         except IndexError:
             raise ProofError('trying to find with out of range line number')
     
-    def find_line_number(self, formula):
-        return self.pure_list().index(formula) + 1
+    def find_line_number(self, proofline):
+        return self.pure_list().index(proofline) + 1
     
     def first(self):
         return self.pure_list()[0]
@@ -168,7 +144,7 @@ class Proof():
         return self.pure_list()[-1]
         
     def change(self, n, formula, rule):
-        if isinstance(self.find(n), ProofLine):
+        if isinstance(self.find(n), DeductionLine):
             self.find(n).change(formula, rule)
         else:
             self.find(n).change(formula)
@@ -193,7 +169,7 @@ class Proof():
     
     def check_line(self, n):
         main_line = self.find(n)
-        if isinstance(main_line, PropNode):
+        if isinstance(main_line, AssumptionLine):
             return GoodComment()
         
         main_formula, rule_name, cit = main_line.formula, main_line.rule.name, main_line.rule.cit
@@ -209,9 +185,7 @@ class Proof():
             if not self.accessible(line_number, n):
                     return BadComment(f'Line {line_number} is not accessible at this line.')
             line = self.find(line_number)
-            if isinstance(line, ProofLine):
-                line = line.formula
-            cit_formulas.append(line)
+            cit_formulas.append(line.formula)
 
         #Deal with formula ranges
 
@@ -226,7 +200,7 @@ class Proof():
 
                 line1 = self.find(line_number1)
                 line2 = self.find(line_number2)
-                if not (isinstance(line1, PropNode) and isinstance(line2, ProofLine)):
+                if not (isinstance(line1, AssumptionLine) and isinstance(line2, DeductionLine)):
                     return BadComment(f'The range {line_number1}-{line_number2} does not encompass a subproof.')
                 
                 subproof = line2.parent_proof
@@ -299,7 +273,7 @@ class Proof():
         elif rule_name == r'\to I':
             if not main_formula.name == r'\to':
                 return BadComment('The deduced formula is not an implication.')
-            elif not main_formula.sub[0].eq_syntax(cit_subproofs[0].first()):
+            elif not main_formula.sub[0].eq_syntax(cit_subproofs[0].formula):
                 return BadComment("The antecedent of the deduced formula is not the assumption of the cited subproof.")
             elif not main_formula.sub[1].eq_syntax(cit_subproofs[0].last().formula):
                 return BadComment("The consequent of the deduced formula is not the last line of the cited subproof.")
@@ -309,11 +283,11 @@ class Proof():
         elif rule_name == r'\leftrightarrow I':
             if not main_formula.name == r'\leftrightarrow':
                 return BadComment('The deduced formula is not a biconditional.')
-            elif not (cit_subproofs[0].last().formula.eq_syntax(cit_subproofs[1].first())):
+            elif not (cit_subproofs[0].last().formula.eq_syntax(cit_subproofs[1].first().formula)):
                 return BadComment('The second subproof does not begin with the last line of the first subproof.')
-            elif not (cit_subproofs[1].last().formula.eq_syntax(cit_subproofs[0].first())):
+            elif not (cit_subproofs[1].last().formula.eq_syntax(cit_subproofs[0].first().formula)):
                 return BadComment('The second subproof does not end with the first line of the first subproof.')
-            elif not ((cit_subproofs[0].first().eq_syntax(main_formula.sub[0]) and cit_subproofs[0].last().formula.eq_syntax(main_formula.sub[1])) or (cit_subproofs[0].first().eq_syntax(main_formula.sub[1]) and cit_subproofs[0].last().formula.eq_syntax(main_formula.sub[0]))):
+            elif not ((cit_subproofs[0].first().formula.eq_syntax(main_formula.sub[0]) and cit_subproofs[0].last().formula.eq_syntax(main_formula.sub[1])) or (cit_subproofs[0].first().formula.eq_syntax(main_formula.sub[1]) and cit_subproofs[0].last().formula.eq_syntax(main_formula.sub[0]))):
                 return BadComment('The subproofs do not begin and end with the conditionals of the deduced line.')
             else:
                 return GoodComment()
@@ -382,7 +356,7 @@ class Proof():
         elif rule_name == r'\neg I':
             cit_subproof = cit_subproofs[0]
 
-            if not (main_formula.eq_syntax(PropNode(r'\neg', [cit_subproof.first()]))):
+            if not (main_formula.eq_syntax(PropNode(r'\neg', [cit_subproof.first().formula]))):
                 return BadComment("The deduced formula is not the negation of cited subproof's assumption.")
             
             if not(cit_subproof.last().formula.eq_syntax(PropNode(r'\bot', [])) or (cit_subproof.last().name == r'\wedge' and (cit_subproof.last().sub[0].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[1]])) or cit_subproof.last().sub[1].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[0]]))))):
@@ -393,7 +367,7 @@ class Proof():
         elif rule_name == r'RAA':
             cit_subproof = cit_subproofs[0]
 
-            if not (cit_subproof.first().eq_syntax(PropNode(r'\neg', [main_formula]))):
+            if not (cit_subproof.first().formula.eq_syntax(PropNode(r'\neg', [main_formula]))):
                 return BadComment("The cited subproof's assumption is not the negation of deduced formula.")
             
             if not(cit_subproof.last().formula.eq_syntax(PropNode(r'\bot', [])) or (cit_subproof.last().name == r'\wedge' and (cit_subproof.last().sub[0].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[1]])) or cit_subproof.last().sub[1].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[0]]))))):
@@ -418,7 +392,7 @@ class Proof():
             if not (cit_formula.name == r'\vee'):
                 return BadComment('The cited formula is not a disjunction.')
 
-            if not ((cit_formula.sub[0].eq_syntax(cit_subproofs[0].first()) and cit_formula.sub[1].eq_syntax(cit_subproofs[1].first())) or (cit_formula.sub[0].eq_syntax(cit_subproofs[1].first()) and cit_formula.sub[1].eq_syntax(cit_subproofs[0].first()))):
+            if not ((cit_formula.sub[0].eq_syntax(cit_subproofs[0].first().formula) and cit_formula.sub[1].eq_syntax(cit_subproofs[1].first().formula)) or (cit_formula.sub[0].eq_syntax(cit_subproofs[1].first().formula) and cit_formula.sub[1].eq_syntax(cit_subproofs[0].first().formula))):
                 return BadComment('The assumptions of the two cited subproofs are not the same as the disjuncts of the cited disjunction.')
 
             if not (cit_subproofs[0].last().formula.eq_syntax(cit_subproofs[1].last().formula)):
@@ -442,19 +416,19 @@ class Proof():
 # A GOOD TEST CASE #
 ####################
 
-# z = Proof([PropNode.parse(r'q')])
-# z.add_last(ProofLine(PropNode.parse(r'p \wedge q'), Rule.parse(r'\wedge I 2,4')))
-# z.add_last(ProofLine(PropNode.parse(r'((p \wedge q) \vee (p \wedge r))'), Rule.parse(r'\vee I 5')))
+# z = Proof([AssumptionLine(PropNode.parse(r'q'))])
+# z.add_last(DeductionLine(PropNode.parse(r'p \wedge q'), Rule.parse(r'\wedge I 2,4')))
+# z.add_last(DeductionLine(PropNode.parse(r'((p \wedge q) \vee (p \wedge r))'), Rule.parse(r'\vee I 5')))
 
-# y = Proof([PropNode.parse(r'r')])
-# y.add_last(ProofLine(PropNode.parse(r'p \wedge r'), Rule.parse(r'\wedge I 2,7')))
-# y.add_last(ProofLine(PropNode.parse(r'((p \wedge q) \vee (p \wedge r))'), Rule.parse(r'\vee I 8')))
+# y = Proof([AssumptionLine(PropNode.parse(r'r'))])
+# y.add_last(DeductionLine(PropNode.parse(r'p \wedge r'), Rule.parse(r'\wedge I 2,7')))
+# y.add_last(DeductionLine(PropNode.parse(r'((p \wedge q) \vee (p \wedge r))'), Rule.parse(r'\vee I 8')))
 
-# x = Proof([PropNode.parse(r'p \wedge (q \vee r)')])
-# x.add_last(ProofLine(PropNode.parse(r'p'), Rule.parse(r'\wedge E 1')))
-# x.add_last(ProofLine(PropNode.parse(r'q \vee r'), Rule.parse(r'\wedge E 1')))
+# x = Proof([AssumptionLine(PropNode.parse(r'p \wedge (q \vee r)'))])
+# x.add_last(DeductionLine(PropNode.parse(r'p'), Rule.parse(r'\wedge E 1')))
+# x.add_last(DeductionLine(PropNode.parse(r'q \vee r'), Rule.parse(r'\wedge E 1')))
 # x.add_last(z)
 # x.add_last(y)
-# x.add_last(ProofLine(PropNode.parse(r'((p \wedge q) \vee (p \wedge r))'), Rule.parse(r'\vee E 3,4-6,7-9')))
+# x.add_last(DeductionLine(PropNode.parse(r'((p \wedge q) \vee (p \wedge r))'), Rule.parse(r'\vee E 3,4-6,7-9')))
 
 # print(x.check_line(5))
