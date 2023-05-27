@@ -1,10 +1,7 @@
 import streamlit as st
-from st_pages import add_indentation
 from prop.formula import *
 from prop.rules import *
 from prop.proofs import *
-
-add_indentation()
 
 st.title('Fitch Proofs for Propositional Logic')
 

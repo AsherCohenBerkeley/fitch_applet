@@ -1,10 +1,8 @@
 import streamlit as st
 
-from st_pages import add_page_title
-
 from prop.rules import *
 
-add_page_title()
+st.title(':books: Getting Started')
 
 st.write("Hello, everyone! Welcome to Philos W12A's interface for writing and checking Fitch-style natural deduction proofs! If you're still feeling shaky about natural deduction even after watching the lectures, don't worry. The practice you get from this website should really help solidify a lot of the key concepts taught in the course.")
 
