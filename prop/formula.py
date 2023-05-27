@@ -1,4 +1,4 @@
-from prop.connectives import *
+from prop.symbols import *
 
 class ParsingError(LogicError):
     note = "We couldn't parse the above formula. Are you sure it's written in LaTeX with lowercase letters?"

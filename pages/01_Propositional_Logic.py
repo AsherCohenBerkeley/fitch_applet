@@ -3,7 +3,7 @@ from prop.formula import *
 from prop.rules import *
 from prop.proofs import *
 
-st.title('Fitch Proofs for Propositional Logic')
+st.title('Proofs for Propositional Logic')
 
 st.markdown('')
 
