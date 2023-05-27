@@ -6,11 +6,11 @@ st.title(':books: Getting Started')
 
 st.write("Hello, everyone! Welcome to Philos W12A's interface for writing and checking Fitch-style natural deduction proofs! If you're still feeling shaky about natural deduction even after watching the lectures, don't worry. The practice you get from this website should really help solidify a lot of the key concepts taught in the course.")
 
-st.write("To familiarize yourself with the basics of how to use this applet, we recommend you read the entirety of this 'Getting Started' page before you start writing your natural deduction proofs. Reading this page will also help review some key concepts from the course.")
+st.write("To familiarize yourself with the basics of how to use this applet, we recommend you read the entirety of this 'Getting Started' page before you start writing your natural deduction proofs. Not to mention, reading this page will help review some key concepts from the course.")
 
 st.subheader("LaTeX")
 
-st.write("This website uses LaTeX as the required syntax for inputting formulas and rules into Fitch-style proofs. Hopefully, over the last couple weeks, you have gotten comfortable with LaTeX in the context of typesetting common logical expressions. Nevertheless, for convenience, we have constructed the table shown below to help remind you of several important LaTeX commands.")
+st.write("This website uses LaTeX as the required syntax for inputting formulas and rules into Fitch-style proofs. Hopefully, over the last couple weeks, you have gotten comfortable with LaTeX in the context of typesetting common logical expressions. Nevertheless, for convenience, we have constructed the table below to help remind you of several important LaTeX commands.")
 
 st.write('')
 st.markdown(f"<center><b>Propositional Logic</b></center>", unsafe_allow_html=True)
