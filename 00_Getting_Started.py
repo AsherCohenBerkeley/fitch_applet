@@ -48,7 +48,6 @@ st.write('')
 #     r"\forall x P(x)", 
 #     r"\exists x P(x)", 
 #     r"x = y",
-#     r"x \neq y",
 # ]
 
 # with col2:
