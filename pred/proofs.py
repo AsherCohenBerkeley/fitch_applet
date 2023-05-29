@@ -273,7 +273,7 @@ class Proof():
         elif rule_name == r'\to I':
             if not main_formula.name == r'\to':
                 return BadComment('The deduced formula is not an implication.')
-            elif not main_formula.sub[0].eq_syntax(cit_subproofs[0].formula):
+            elif not main_formula.sub[0].eq_syntax(cit_subproofs[0].first().formula):
                 return BadComment("The antecedent of the deduced formula is not the assumption of the cited subproof.")
             elif not main_formula.sub[1].eq_syntax(cit_subproofs[0].last().formula):
                 return BadComment("The consequent of the deduced formula is not the last line of the cited subproof.")
