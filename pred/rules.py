@@ -1,4 +1,4 @@
-from prop.symbols import *
+from pred.symbols import *
 
 rules = {
     r'\wedge E': '%s',
@@ -37,7 +37,10 @@ class Rule():
         self.name = name
         self.cit_lines = cit_lines
         try:
-            self.cit = rules[name]%cit_lines
+            if '%s' in rules[name]:
+                self.cit = rules[name]%cit_lines
+            else:
+                self.cit = ''
         except TypeError:
             raise RuleError(f'incorrect number of lines for rule {name}')
     
@@ -95,10 +98,8 @@ class Rule():
         if len(number_pieces_string)!=len(number_pieces_format):
             raise CitationError(citation_error_message)
         for piece in number_pieces_string:
-            if len(piece) == 0:
+            if len(piece) == 0 and rule_name != '= I':
                 raise CitationError(citation_error_message)
 
         format_tuple = tuple(original_format.replace('-', ',').split(','))
         return Rule(name, format_tuple)
-    
-

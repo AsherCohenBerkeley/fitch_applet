@@ -1,14 +1,14 @@
-from symbols import *
+from pred.symbols import *
 import random
 
 class ParsingError(LogicError):
     note = "We couldn't parse the above formula. Are you sure it's written in LaTeX with lowercase letters?"
     pass
 
-class TermError(LogicError):
+class TermError(ParsingError):
     pass
 
-class FormulaError(LogicError):
+class FormulaError(ParsingError):
     pass
 
 class Pred_Term:
@@ -32,14 +32,14 @@ class Pred_Term:
     def parse(string):
         string = string.replace(' ', '')
         if len(string) == 0:
-            raise TermError('trying to parse empty string')
+            raise TermError(ParsingError.note)
         if string[0] == 'c' and len(string) <= 3:
             return Pred_Term('const', string, None)
         elif len(string) == 1:
             return Pred_Term('var', string, None)
         elif string[1] == '(' and string[-1] == ')':
             return Pred_Term('func', string[0], list(map(Pred_Term.parse, string[2:-1].split(','))))
-        raise TermError('cannot parse string as term')
+        raise TermError(ParsingError.note)
 
 def random_pred_term_tree(min_depth = 0, max_depth = 2, var = None, const = None, func = None):
     #default values
@@ -85,6 +85,7 @@ def indices(string, sub):
 class Pred_Form:
     def __init__(self, ctgy, value, sub):
         self.ctgy = ctgy
+        self.name = value
         self.value = value
         self.sub = sub
     def __repr__(self):
@@ -111,6 +112,9 @@ class Pred_Form:
         string = string.replace(r'\rightarrow', r'\to')
         string = string.replace(r'\all', r'\forall')
 
+        if len(string) <= 2:
+            raise FormulaError(ParsingError.note)
+
         p_balance = 0
         for char in string:
 
@@ -120,9 +124,9 @@ class Pred_Form:
                 p_balance -= 1
             
             if p_balance < 0:
-                raise FormulaError('parentheses unbalanced')
+                raise FormulaError(ParsingError.note)
         if p_balance != 0:
-            FormulaError('parentheses unbalanced')
+            FormulaError(ParsingError.note)
 
         if string[0] == '(' and string[-1] == ')':
             return Pred_Form.parse(string[1:-1])
@@ -143,11 +147,11 @@ class Pred_Form:
         for q in quants:
             if len(string) > len(q)+2 and q == string[:len(q)]:
                 return Pred_Form('quant', f'{q} {string[len(q)]}.', [Pred_Form.parse(string[len(q)+1:])])
-        
+
         if string[1] == '(' and string[-1] == ')':
             pred_name = string[0]
             if not (ord('A') <= ord(pred_name) <= ord('Z')):
-                raise FormulaError('invalid predicate name')
+                raise FormulaError(ParsingError.note)
             return Pred_Form('pred', pred_name, list(map(Pred_Term.parse, string[2:-1].split(','))))
 
         if '=' in string:
@@ -159,7 +163,7 @@ class Pred_Form:
             except ParsingError:
                 pass
         
-        raise FormulaError('cannot parse string into formula')
+        raise FormulaError(ParsingError.note)
 
 def identical_twins_pred(tree):
     if tree.ctgy == 'identity':
