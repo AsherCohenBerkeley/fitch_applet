@@ -71,6 +71,13 @@ class Rule():
 
         citation_error_message = f"""We couldn't parse the line citation "{original_format}". As a reminder, the line citation for ${name}$ should be of the form {rules[name]%(('#',)*rules[name].count('%s'))} where # is a line number."""
 
+        if rules[name] == '':
+            citation_error_message = f"""We couldn't parse the line citation "{original_format}". As a reminder, there should be no lines cited for ${name}$."""
+            if string != '':
+                raise CitationError(citation_error_message)
+            else:
+                return Rule(name, ())
+
         original_format2 = string
 
         overall_check = string
@@ -98,7 +105,7 @@ class Rule():
         if len(number_pieces_string)!=len(number_pieces_format):
             raise CitationError(citation_error_message)
         for piece in number_pieces_string:
-            if len(piece) == 0 and rule_name != '= I':
+            if len(piece) == 0:
                 raise CitationError(citation_error_message)
 
         format_tuple = tuple(original_format.replace('-', ',').split(','))
