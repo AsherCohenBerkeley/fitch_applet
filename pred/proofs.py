@@ -411,7 +411,57 @@ class Proof():
             
             return GoodComment()
         
+        elif rule_name == '= E':
+            phi_prime = main_formula
 
+            possible_eq = []
+            for f in cit_formulas:
+                if f.name == '=':
+                    possible_eq.append(f)
+            
+            if len(possible_eq) == 0:
+                return BadComment('Neither cited formula is an identity.')
+            
+            number_to_text = {
+                1: 'not all variables in the substituted term are free in the cited formula.',
+                2: 'the relevant term is not substitutable in the cited formula.',
+                3: 'the deduced formula is not the result of replacing any number of instances of the first term with instances of the second term.'
+            }
+
+            comment_number = 0
+            
+            for eq in possible_eq:
+                phi = [form for form in cit_formulas if form != eq][0]
+                for t in eq.sub:
+                    t1 = t
+                    t2 = [term for term in eq.sub if term != t][0]
+
+                    if not t1.free().issubset(phi.free()):
+                        comment_number = max(comment_number, 1)
+                        continue
+
+                    able_to_substitute = True
+                    for var_name in t1.free():
+                        able_to_substitute = able_to_substitute and substitutable(phi, var_name, t2.free())
+                    if not able_to_substitute:
+                        comment_number = max(comment_number, 2)
+                        continue
+                    
+                    equal_to_main_formula = False
+                    for f in all_substitute_TT_form(phi, t1, t2):
+                        equal_to_main_formula = equal_to_main_formula or phi_prime.eq_syntax(f)
+                    if not equal_to_main_formula: 
+                        comment_number = max(comment_number, 3)
+                        continue
+
+                    comment_number = 4
+            
+            if comment_number == 0:
+                raise ProofError('problem not captured by =E checker')
+            elif comment_number < 4:
+                return BadComment(number_to_text[comment_number])
+            else:
+                return GoodComment()
 
         if rule_name in rules:
             raise ProofError('rule not covered by check_line method, fix by editing Proof.check_line')

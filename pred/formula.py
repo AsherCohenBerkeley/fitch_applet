@@ -1,4 +1,4 @@
-from symbols import *
+from pred.symbols import *
 import random
 
 class ParsingError(LogicError):
@@ -243,6 +243,118 @@ def substitute_form(tree, var, term):
             list(map(lambda subterm: substitute_form(subterm, var, term), tree.sub))
             )
 
+def substitute_TT_term(tree, t1, t2):
+    """
+    t1 old
+    t2 new
+    """
+    if tree.eq_syntax(t1):
+        return t2
+    elif tree.sub == None:
+        return tree
+    else:
+        return Pred_Term(
+        tree.ctgy,
+        tree.value,
+        list(
+            map(
+                lambda subtree: substitute_TT_term(subtree, t1, t2),
+                tree.sub
+                )
+            )
+        )
+
+def all_substitute_TT_term(tree, t1, t2):
+    """
+    t1 old
+    t2 new
+    """
+    if tree.eq_syntax(t1):
+        return [t2]
+    elif tree.sub == None:
+        return [tree]
+    else:
+        output = []
+        for TF_lst in all_TF_lst(len(tree.sub)):
+            new_sub = []
+            for boolean, subtree in zip(TF_lst, tree.sub):
+                if boolean:
+                    new_sub.append(substitute_TT_term(subtree, t1, t2))
+                else:
+                    new_sub.append(subtree)
+            output.append(Pred_Form(tree.ctgy, tree.value, new_sub))
+        return output
+
+def substitute_TT_form(tree, t1, t2):
+    if tree.ctgy=="identity" or tree.ctgy == "pred":
+        return Pred_Form(
+        tree.ctgy,
+        tree.value,
+        list(
+            map(
+                lambda subtree: substitute_TT_term(subtree, t1, t2),
+                tree.sub
+                )
+            )
+        )
+    if tree.ctgy=="conn":
+        return Pred_Form(
+        tree.ctgy,
+        tree.value,
+        list(
+            map(
+                lambda subtree: substitute_TT_form(subtree, t1, t2),
+                tree.sub
+                )
+            )
+        )
+    if tree.ctgy == "quant":
+        return Pred_Form(
+        tree.ctgy,
+        tree.value,
+        list(
+            map(
+                lambda subtree: substitute_TT_form(subtree, t1, t2),
+                tree.sub
+                )
+            )
+        )
+
+def all_substitute_TT_form(tree, t1, t2):
+    if tree.ctgy=="identity" or tree.ctgy == "pred":
+        output = []
+        for TF_lst in all_TF_lst(len(tree.sub)):
+            new_sub = []
+            for boolean, subtree in zip(TF_lst, tree.sub):
+                if boolean:
+                    new_sub.append(substitute_TT_term(subtree, t1, t2))
+                else:
+                    new_sub.append(subtree)
+            output.append(Pred_Form(tree.ctgy, tree.value, new_sub))
+        return output
+    if tree.ctgy=="conn":
+        output = []
+        for TF_lst in all_TF_lst(len(tree.sub)):
+            new_sub = []
+            for boolean, subtree in zip(TF_lst, tree.sub):
+                if boolean:
+                    new_sub.append(substitute_TT_form(subtree, t1, t2))
+                else:
+                    new_sub.append(subtree)
+            output.append(Pred_Form(tree.ctgy, tree.value, new_sub))
+        return output
+    if tree.ctgy == "quant":
+        output = []
+        for TF_lst in all_TF_lst(len(tree.sub)):
+            new_sub = []
+            for boolean, subtree in zip(TF_lst, tree.sub):
+                if boolean:
+                    new_sub.append(substitute_TT_form(subtree, t1, t2))
+                else:
+                    new_sub.append(subtree)
+            output.append(Pred_Form(tree.ctgy, tree.value, new_sub))
+        return output
+
 def all_TF_lst(n):
     if n == 0:
         return [[]]
@@ -318,5 +430,5 @@ def all_substitute_form(tree, var, term):
 class SubstitutionError(LogicError):
     pass
 
-for tree in all_substitute_form(Pred_Form.parse(r'\forall x x=x'), 'x', Pred_Term.parse('y')):
+for tree in all_substitute_TT_form(Pred_Form.parse(r'f(f(x))=f(x)'), Pred_Term.parse('f(x)'), Pred_Term.parse('g(y)')):
     print(tree.latex())
