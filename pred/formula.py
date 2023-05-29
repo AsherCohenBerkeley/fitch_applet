@@ -86,9 +86,12 @@ class Pred_Form:
         if self.ctgy == 'quant':
             return f'{self.value[:-1]} {self.sub[0].latex()}'
         if self.ctgy == 'conn':
-            if self.value == r'\neg':
-                return rf'\neg {self.sub[0].latex()}'
-            return f'({self.sub[0].latex()} {self.value} {self.sub[1].latex()})'
+            if self.value in zeroary:
+                return self.value
+            elif self.value in unary:
+                return rf'{self.value} {self.sub[0].latex()}'
+            else:
+                return f'({self.sub[0].latex()} {self.value} {self.sub[1].latex()})'
     def free(self):
         def aux(self, bound_so_far):
             if self.ctgy == 'identity':
@@ -110,6 +113,10 @@ class Pred_Form:
         string = string.replace(' ', '')
         string = string.replace(r'\rightarrow', r'\to')
         string = string.replace(r'\all', r'\forall')
+
+        for conn in zeroary:
+            if string == conn:
+                return Pred_Form('conn', conn, [])
 
         if len(string) <= 2:
             raise FormulaError(ParsingError.note)

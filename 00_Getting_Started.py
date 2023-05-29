@@ -130,7 +130,7 @@ st.subheader("Additional Help")
 
 st.write("If at any point you're having trouble with any part of this website, please feel free to make a post on Ed Discussion. We (the course staff) would be more than happy to help.")
 
-st.write("This website was also developed very recently, so it's possible there are some minor bugs in the underlying code. If you think you may have noticed a bug, again please make a post on Ed Discussion, detailing exactly what you did to arrive at the bug, ideally including screenshots.")
+st.write("This website was also developed very recently, so it's possible there are some bugs in the underlying code. If you think you may have noticed a bug, again please make a post on Ed Discussion, detailing exactly what you did to arrive at the bug, ideally including screenshots.")
 
 st.write('')
 st.write("Thank you so much for reading along, and good luck with your Fitch-style proofs!")
