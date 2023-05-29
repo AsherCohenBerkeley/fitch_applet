@@ -239,7 +239,7 @@ class Proof():
             if not main_formula.name == r'\wedge':
                 return BadComment('The deduced formula is not a conjunction.')
             
-            if not (main_formula.eq_syntax(Pred_Form(r'\wedge',[cit_formulas[0], cit_formulas[1]])) or main_formula.eq_syntax(Pred_Form(r'\wedge',[cit_formulas[1], cit_formulas[0]]))):
+            if not (main_formula.eq_syntax(Pred_Form('conn', r'\wedge',[cit_formulas[0], cit_formulas[1]])) or main_formula.eq_syntax(Pred_Form('conn', r'\wedge',[cit_formulas[1], cit_formulas[0]]))):
                 return BadComment('The deduced formula is not the conjunction of the two cited formulas.')
             
             return GoodComment()
@@ -332,7 +332,7 @@ class Proof():
         
         elif rule_name == r'EFQ':
             cit_formula = cit_formulas[0]
-            if not (cit_formula.name == r'\wedge' and (cit_formula.sub[0].eq_syntax(Pred_Form(r'\neg',[cit_formula.sub[1]])) or cit_formula.sub[1].eq_syntax(Pred_Form(r'\neg',[cit_formula.sub[0]])))):
+            if not (cit_formula.name == r'\wedge' and (cit_formula.sub[0].eq_syntax(Pred_Form('conn', r'\neg',[cit_formula.sub[1]])) or cit_formula.sub[1].eq_syntax(Pred_Form('conn', r'\neg',[cit_formula.sub[0]])))):
                 return BadComment('The cited formula is the conjunction of a formula and its negation.')
             
             return GoodComment()
@@ -348,7 +348,7 @@ class Proof():
             if not (main_formula.name == r'\bot'):
                 return BadComment('The deduced formula is not bottom.')
             
-            if not (cit_formulas[0].eq_syntax(Pred_Form(r'\neg',[cit_formulas[1]])) or cit_formulas[1].eq_syntax(Pred_Form(r'\neg',[cit_formulas[0]]))):
+            if not (cit_formulas[0].eq_syntax(Pred_Form('conn', r'\neg',[cit_formulas[1]])) or cit_formulas[1].eq_syntax(Pred_Form('conn', r'\neg',[cit_formulas[0]]))):
                 return GoodComment('Neither cited formula is the negation of the other.')
 
             return GoodComment()
@@ -356,10 +356,10 @@ class Proof():
         elif rule_name == r'\neg I':
             cit_subproof = cit_subproofs[0]
 
-            if not (main_formula.eq_syntax(Pred_Form(r'\neg', [cit_subproof.first().formula]))):
+            if not (main_formula.eq_syntax(Pred_Form('conn', r'\neg', [cit_subproof.first().formula]))):
                 return BadComment("The deduced formula is not the negation of cited subproof's assumption.")
             
-            if not(cit_subproof.last().formula.eq_syntax(Pred_Form(r'\bot', [])) or (cit_subproof.last().name == r'\wedge' and (cit_subproof.last().sub[0].eq_syntax(Pred_Form(r'\neg',[cit_subproof.last().sub[1]])) or cit_subproof.last().sub[1].eq_syntax(Pred_Form(r'\neg',[cit_subproof.last().sub[0]]))))):
+            if not(cit_subproof.last().formula.eq_syntax(Pred_Form('conn', r'\bot', [])) or (cit_subproof.last().name == r'\wedge' and (cit_subproof.last().sub[0].eq_syntax(Pred_Form('conn', r'\neg',[cit_subproof.last().sub[1]])) or cit_subproof.last().sub[1].eq_syntax(Pred_Form('conn', r'\neg',[cit_subproof.last().sub[0]]))))):
                 return BadComment('The last formula of the cited subproof is not bottom or the conjunction of a formula and its negation.')
             
             return GoodComment()
@@ -367,10 +367,10 @@ class Proof():
         elif rule_name == r'RAA':
             cit_subproof = cit_subproofs[0]
 
-            if not (cit_subproof.first().formula.eq_syntax(Pred_Form(r'\neg', [main_formula]))):
+            if not (cit_subproof.first().formula.eq_syntax(Pred_Form('conn', r'\neg', [main_formula]))):
                 return BadComment("The cited subproof's assumption is not the negation of deduced formula.")
             
-            if not(cit_subproof.last().formula.eq_syntax(Pred_Form(r'\bot', [])) or (cit_subproof.last().name == r'\wedge' and (cit_subproof.last().sub[0].eq_syntax(Pred_Form(r'\neg',[cit_subproof.last().sub[1]])) or cit_subproof.last().sub[1].eq_syntax(Pred_Form(r'\neg',[cit_subproof.last().sub[0]]))))):
+            if not(cit_subproof.last().formula.eq_syntax(Pred_Form('conn', r'\bot', [])) or (cit_subproof.last().name == r'\wedge' and (cit_subproof.last().sub[0].eq_syntax(Pred_Form('conn', r'\neg',[cit_subproof.last().sub[1]])) or cit_subproof.last().sub[1].eq_syntax(Pred_Form('conn', r'\neg',[cit_subproof.last().sub[0]]))))):
                 return BadComment('The last formula of the cited subproof is not bottom or the conjunction of a formula and its negation.')
             
             return GoodComment()
@@ -403,7 +403,7 @@ class Proof():
             
             return GoodComment()
         
-        elif rule_name == '= I':
+        elif rule_name == r'= I':
             if not main_formula.name == '=':
                 return BadComment('The deduced formula is not an identity statement.')
             if not main_formula.sub[0].eq_syntax(main_formula.sub[1]):
@@ -411,7 +411,7 @@ class Proof():
             
             return GoodComment()
         
-        elif rule_name == '= E':
+        elif rule_name == r'= E':
             phi_prime = main_formula
 
             possible_eq = []
@@ -462,6 +462,32 @@ class Proof():
                 return BadComment(number_to_text[comment_number])
             else:
                 return GoodComment()
+        
+        elif rule_name == r'\forall E':
+            cit_formula = cit_formulas[0]
+
+            if not (cit_formula.ctgy == 'quant' and len(cit_formula.value)>len(r'\forall') and cit_formula.value[:len(r'\forall')]==r'\forall'):
+                return BadComment('the cited formula is not a universal quantification.')
+            
+            var_name = cit_formula.value[-2]
+            
+            if not (substitute_compare_total(cit_formula.sub[0], main_formula, var_name)):
+                return BadComment(f'the deduced formula is not the result of substituting a term for {var_name} in the cited formula.')
+            
+            return GoodComment()
+        
+        elif rule_name == r'\exists I':
+            cit_formula = cit_formulas[0]
+
+            if not (main_formula.ctgy == 'quant' and len(main_formula.value)>len(r'\exists') and main_formula.value[:len(r'\exists')]==r'\exists'):
+                return BadComment('the deduced formula is not an existential quantification.')
+            
+            var_name = main_formula.value[-2]
+            
+            if not (substitute_compare_total(main_formula.sub[0], cit_formula, var_name)):
+                return BadComment(f'the cited formula is not the result of substituting a term for {var_name} in the deduced formula.')
+            
+            return GoodComment()
 
         if rule_name in rules:
             raise ProofError('rule not covered by check_line method, fix by editing Proof.check_line')

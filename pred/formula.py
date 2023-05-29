@@ -182,6 +182,9 @@ class Pred_Form:
         
         raise FormulaError(ParsingError.note)
 
+class SubstitutionError(LogicError):
+    pass
+
 def substitutable(tree, var, term_free):
     def aux(tree, var, term_free, bound_so_far):
         """substitute term for var in tree"""
@@ -200,9 +203,10 @@ def substitutable(tree, var, term_free):
             else:
                 return aux(tree.sub[0], var, term_free, bound_so_far|{y})
         if tree.ctgy == "conn":
-            if tree.value == "-":
-                return aux(tree.sub[0], var, term_free, bound_so_far)
-            return aux(tree.sub[0], var, term_free, bound_so_far) and aux(tree.sub[1], var, term_free, bound_so_far)
+            output = True
+            for sub_tree in tree.sub:
+                output = output and aux(sub_tree, var, term_free, bound_so_far)
+            return output
     return aux(tree, var, term_free, set())
 
 def substitute_term(tree, var, term):
@@ -434,8 +438,74 @@ def all_substitute_form(tree, var, term):
                 output.append(Pred_Form(tree.ctgy, tree.value, new_sub))
             return output
 
-class SubstitutionError(LogicError):
-    pass
+def substitute_compare_term(unsubbed, subbed, var_name):
+    if unsubbed.ctgy == 'const':
+        if unsubbed.eq_syntax(subbed):
+            return []
+        else:
+            return [None]
+    elif unsubbed.ctgy == 'var':
+        if unsubbed.value == var_name:
+            return [subbed]
+        else:
+            if unsubbed.eq_syntax(subbed):
+                return []
+            else:
+                return [None]
+    else:
+        if not (unsubbed.ctgy == subbed.ctgy):
+            return [None]
+        if not (len(unsubbed.sub) == len(subbed.sub)):
+            return [None]
+        output = []
+        for unsubbed_sub, subbed_sub in zip(unsubbed.sub, subbed.sub):
+            output += substitute_compare_term(unsubbed_sub, subbed_sub, var_name)
+        return output
+    
+def substitute_compare_form(unsubbed, subbed, var_name):
+    if unsubbed.ctgy=="identity" or unsubbed.ctgy == "pred":
+        if not (unsubbed.ctgy == subbed.ctgy):
+            return [None]
+        if not (len(unsubbed.sub) == len(subbed.sub)):
+            return [None]
+        output = []
+        for unsubbed_sub, subbed_sub in zip(unsubbed.sub, subbed.sub):
+            output += substitute_compare_term(unsubbed_sub, subbed_sub, var_name)
+        return output
+    if unsubbed.ctgy=="conn":
+        if not (unsubbed.ctgy == subbed.ctgy):
+            return [None]
+        if not (len(unsubbed.sub) == len(subbed.sub)):
+            return [None]
+        output = []
+        for unsubbed_sub, subbed_sub in zip(unsubbed.sub, subbed.sub):
+            output += substitute_compare_form(unsubbed_sub, subbed_sub, var_name)
+        return output
+    if unsubbed.ctgy == "quant":
+        if not (unsubbed.ctgy == subbed.ctgy):
+            return [None]
+        quant_var = unsubbed.value[-2]
+        if quant_var == var_name:
+            if unsubbed.eq_syntax(subbed):
+                return []
+            else:
+                return [None]
+        else:
+            if not (unsubbed.value == subbed.value):
+                return [None]
+            return substitute_compare_form(unsubbed.sub[0], subbed.sub[0], var_name)
+        
+def substitute_compare_total(unsubbed, subbed, var_name):
+    lst = substitute_compare_form(unsubbed, subbed, var_name)
+    if len(lst) == 0:
+        return True
+    if None in lst:
+        return False
+    output = True
+    t = lst[0]
+    for t_prime in lst[1:]:
+        output = output and t.eq_syntax(t_prime)
+    output = output and substitutable(unsubbed, var_name, t.free())
+    return output
 
-for tree in all_substitute_TT_form(Pred_Form.parse(r'f(f(x))=f(x)'), Pred_Term.parse('f(x)'), Pred_Term.parse('g(y)')):
-    print(tree.latex())
+# print(substitute_compare_total(Pred_Form.parse(r'\forall y x = f(x)'), Pred_Form.parse(r'\forall y y = f(y)'), 'x'))

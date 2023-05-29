@@ -51,11 +51,26 @@ def assumptions_display(assumptions):
     assumptions_latex = assumptions_latex[:-2]
     return (r'\{'+assumptions_latex+r'\}')
 
+def special_parser(string):
+    new_string = string
+
+    p_balance = 0
+    for i, char in enumerate(string):
+        if char == '(':
+            p_balance += 1
+        elif char == ')':
+            p_balance -= 1
+        
+        if p_balance == 0 and char == ',':
+            new_string = new_string[:i] + ';' + new_string[i+1:]
+    
+    return list(map(Pred_Form.parse, new_string.split(';')))
+
 assumptions_textbox = TextBox(
     "assumptions_textbox",
     "Premises",
     [], 
-    lambda string: list(map(Pred_Form.parse, string.split(','))),
+    special_parser,
     ParsingError,
     assumptions_display,
     custom_error_message="We can't parse the above formulas. Are you sure they're written in LaTeX and separated by commas?"
