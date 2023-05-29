@@ -176,7 +176,7 @@ class Proof():
         
         cit_split = cit.split(',')
 
-        cit_line_numbers = [int(string) for string in cit_split if '-' not in string]
+        cit_line_numbers = [int(string) for string in cit_split if '-' not in string and len(string) > 0]
 
         #Deal with individual formulas
 
@@ -402,17 +402,18 @@ class Proof():
                 return BadComment('The deduced formula is not the same as the last line of the two cited subproofs.')
             
             return GoodComment()
+        
+        elif rule_name == '= I':
+            if not main_formula.name == '=':
+                return BadComment('The deduced formula is not an identity statement.')
+            if not main_formula.sub[0].eq_syntax(main_formula.sub[1]):
+                return BadComment('The left and right term of the deduced identity are not the same.')
+            
+            return GoodComment()
+        
+
 
         if rule_name in rules:
             raise ProofError('rule not covered by check_line method, fix by editing Proof.check_line')
         
         raise ProofError('ILLEGAL RULE ALLOWED THROUGH PARSING FUNCTION!!!!!')
-
-            
-
-
-
-####################
-# A GOOD TEST CASE #
-####################
-
