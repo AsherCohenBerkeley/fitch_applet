@@ -334,7 +334,12 @@ if st.session_state.textboxes['pred_assumptions_textbox']['disabled']:
 
     with col2:
         default_string = '---'
-        line_number = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines+1))))
+        changeable_line_numbers = []
+        for l_num in range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines+1):
+            line = st.session_state.main_proof.find(l_num)
+            if isinstance(line, DeductionLine) or isinstance(line, NormalAssumptionLine):
+                changeable_line_numbers.append(l_num)
+        line_number = st.selectbox('Line Number', tuple([default_string] + changeable_line_numbers))
         if line_number != default_string:
             line_number = int(line_number)
 

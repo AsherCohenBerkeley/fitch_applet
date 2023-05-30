@@ -554,14 +554,14 @@ class Proof():
             
             return GoodComment()
 
-        elif rule_name == r'\forall E':
+        elif rule_name == r'\exists E':
             cit_formula = cit_formulas[0]
             cit_subproof = cit_subproofs[0]
 
             if not (cit_formula.ctgy == 'quant' and len(cit_formula.value)>len(r'\exists') and cit_formula.value[:len(r'\exists')]==r'\exists'):
                 return BadComment('the cited formula is not an existential quantification.')
             
-            var_name = cit_formula[-2]
+            var_name = cit_formula.value[-2]
             phi = cit_formula.sub[0]
 
             if not isinstance(cit_subproof.first(), ExistElimAssumptionLine):
