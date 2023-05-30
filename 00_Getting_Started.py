@@ -1,6 +1,6 @@
 import streamlit as st
 
-from prop.rules import *
+from pred.rules import *
 
 st.title(':books: Getting Started')
 
@@ -14,9 +14,6 @@ st.write("This website uses LaTeX as the required syntax for inputting formulas 
 
 st.write('')
 st.markdown(f"<center><b>Propositional Logic</b></center>", unsafe_allow_html=True)
-st.write('')
-
-col1, col2, col3, col4 = st.columns(4)
 
 expressions = [
     r"\neg p", 
@@ -26,41 +23,35 @@ expressions = [
     r"(p \leftrightarrow q)",
 ]
 
-with col2:
-    for e in expressions:
+for e in expressions:
+    col1, col2, col3, col4 = st.columns(4)
+    with col2:
         st.markdown('')
         st.markdown(f"<center>{e}</center>", unsafe_allow_html=True)
         st.markdown('')
-
-with col3:
-    for e in expressions:
+    with col3:
         st.latex(e)
 
 st.write('')
 st.write('')
 
-# st.markdown(f"<center><b>Predicate Logic</b></center>", unsafe_allow_html=True)
-# st.write('')
+st.markdown(f"<center><b>Predicate Logic</b></center>", unsafe_allow_html=True)
 
-# col1, col2, col3, col4 = st.columns(4)
-
-# expressions = [
-#     r"\forall x P(x)", 
-#     r"\exists x P(x)", 
-#     r"x = y",
-# ]
-
-# with col2:
-#     for e in expressions:
-#         st.markdown('')
-#         st.markdown(f"<center>{e}</center>", unsafe_allow_html=True)
-#         st.markdown('')
-
-# with col3:
-#     for e in expressions:
-#         st.latex(e)
-# st.write('')
-# st.write('')
+expressions = [
+    r"\forall x P(x)", 
+    r"\exists x P(x)", 
+    r"x = y",
+]
+for e in expressions:
+    col1, col2, col3, col4 = st.columns(4)
+    with col2:
+        st.markdown('')
+        st.markdown(f"<center>{e}</center>", unsafe_allow_html=True)
+        st.markdown('')
+    with col3:
+        st.latex(e)
+st.write('')
+st.write('')
 
 st.write('In this applet, whenever you want to type in a list of formulas (like when you want to input several premises for your proof), simply seperate each formula by a comma.')
 
@@ -70,24 +61,26 @@ st.write('')
 st.markdown(f"<center><b>Deduction Rule Examples</b></center>", unsafe_allow_html=True)
 st.write('')
 
-col1, col2, col3, col4 = st.columns(4)
-
 expressions = [
     r"\wedge I 5,8", 
     r"\to I 3-7", 
     r"\neg E 3",
     r"RAA 1-10",
+    r"\forall E 1",
+    r"\exists E 3, 10-19",
+    r"= I"
 ]
 
-with col2:
-    for e in expressions:
-        st.markdown('')
-        st.markdown(f"<center>{e}</center>", unsafe_allow_html=True)
-        st.markdown('')
+for e in expressions:
+    col1, col2, col3, col4 = st.columns(4)
 
-with col3:
-    for e in expressions:
-        st.latex(Rule.parse(e).latex())
+    with col2:
+            st.markdown('')
+            st.markdown(f"<center>{e}</center>", unsafe_allow_html=True)
+            st.markdown('')
+
+    with col3:
+            st.latex(Rule.parse(e).latex())
 st.write('')
 st.write('')
 
@@ -97,9 +90,11 @@ st.write("This website supports exactly those deduction rules taught in Philosop
 
 st.write("For convenience, here is a comprehensive list of all those rules taught in class where # stands in for some line number.")
 
+prop_rules = {rule: cit for (rule, cit) in rules.items() if not ('=' in rule or r'\forall' in rule or r'\exists' in rule)}
+
 per_col = 4
 
-n_rules = len(rules)
+n_rules = len(prop_rules)
 n_cols = n_rules // per_col
 if n_rules % per_col != 0: n_cols += 1
 
@@ -107,11 +102,34 @@ cols = st.columns(n_cols)
 
 idx_col = 0
 i = 0
-for name, cit in rules.items():
+for name, cit in prop_rules.items():
     with cols[idx_col]:
         st.latex(Rule(name, ('\#',)*cit.count('%s')).latex().replace('-', '--'))
     i += 1
-    if i == 4:
+    if i == per_col:
+        idx_col += 1
+        i = 0
+
+st.markdown('')
+st.markdown('')
+
+pred_rules = {rule: cit for (rule, cit) in rules.items() if ('=' in rule or r'\forall' in rule or r'\exists' in rule)}
+
+per_col = 2
+
+n_rules = len(pred_rules)
+n_cols = n_rules // per_col
+if n_rules % per_col != 0: n_cols += 1
+
+cols = st.columns(n_cols+2, gap='large')
+
+idx_col = 0
+i = 0
+for name, cit in pred_rules.items():
+    with cols[idx_col+1]:
+        st.latex(Rule(name, ('\#',)*cit.count('%s')).latex().replace('-', '--'))
+    i += 1
+    if i == per_col:
         idx_col += 1
         i = 0
 

@@ -21,7 +21,7 @@ rules = {
     r'\forall I': '%s-%s',
     r'\forall E': '%s',
     r'\exists I': '%s',
-    r'\exists E': '%s-%s',
+    r'\exists E': '%s, %s-%s',
 }
 
 class RuleError(LogicError):
