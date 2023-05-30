@@ -78,6 +78,8 @@ class Proof():
                     output += a.formula.latex() + r'\\'+ '\n'
                 elif isinstance(a, UnivIntroAssumptionLine):
                     output += r'\boxed{' + a.const_name + r'}' + r'\\'+ '\n'
+                elif isinstance(a, ExistElimAssumptionLine):
+                    output += a.formula.latex() + r'\;\; \boxed{' + a.const_name + r'}' + r'\\'+ '\n'
                 else:
                     raise ProofError('case not accounted for in Proof.latex')
             if len(self.assumptions) > 0:
@@ -218,7 +220,7 @@ class Proof():
             if not self.accessible(line_number, n):
                     return BadComment(f'Line {line_number} is not accessible at this line.')
             line = self.find(line_number)
-            if not (isinstance(line, DeductionLine) or isinstance(line, NormalAssumptionLine)):
+            if not (isinstance(line, DeductionLine) or isinstance(line, NormalAssumptionLine) or isinstance(line, ExistElimAssumptionLine)):
                 return BadComment(f'Line {line_number} does not contain a formula and thus cannot be cited for this rule.')
             cit_formulas.append(line.formula)
 
@@ -552,7 +554,32 @@ class Proof():
             
             return GoodComment()
 
+        elif rule_name == r'\forall E':
+            cit_formula = cit_formulas[0]
+            cit_subproof = cit_subproofs[0]
 
+            if not (cit_formula.ctgy == 'quant' and len(cit_formula.value)>len(r'\exists') and cit_formula.value[:len(r'\exists')]==r'\exists'):
+                return BadComment('the cited formula is not an existential quantification.')
+            
+            var_name = cit_formula[-2]
+            phi = cit_formula.sub[0]
+
+            if not isinstance(cit_subproof.first(), ExistElimAssumptionLine):
+                return BadComment('the cited formula does not begin with a formula and a boxed constant.')
+            
+            phi_subbed = cit_subproof.first().formula
+            const_name = cit_subproof.first().const_name
+
+            if const_name in cit_subproof.last().formula.consts():
+                return BadComment('the cited subproof ends with a formula, which contains the new constant.')
+            
+            if not (substitute_form(phi, var_name, Pred_Term.parse(const_name)).eq_syntax(phi_subbed)):
+                return BadComment('the cited subproof does not begin with the cited existential with the existentially quantified variable substituted for the relevant constant.')
+            
+            if not (main_formula.eq_syntax(cit_subproof.last().formula)):
+                return BadComment('the cited subproof does not end with the deduced formula.')
+            
+            return GoodComment()
 
         if rule_name in rules:
             raise ProofError('rule not covered by check_line method, fix by editing Proof.check_line')

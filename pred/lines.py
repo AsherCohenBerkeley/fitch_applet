@@ -47,6 +47,22 @@ class UnivIntroAssumptionLine(AssumptionLine):
     def consts(self):
         return [self.const_name]
 
+class ExistElimAssumptionLine(AssumptionLine):
+    def __init__(self, formula, const_name):
+        self.formula = formula
+        self.const_name = const_name
+        self.parent_proof = None
+    
+    def __repr__(self):
+        return f'ExistElimAssumptionLine({self.formula}, {self.const_name})'
+    
+    def change(self, formula, const_name):
+        self.formula = formula
+        self.const_name = const_name
+    
+    def consts(self):
+        return self.formula.consts() + [self.const_name]
+
 class DeductionLine(ProofLine):
     def __init__(self, formula, rule):
         if not (isinstance(formula, Blank) or isinstance(formula, Pred_Form)):

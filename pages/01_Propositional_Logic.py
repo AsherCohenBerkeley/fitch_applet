@@ -120,6 +120,8 @@ change_line_textbox2 = TextBox(
 ##########
 
 def set_up():
+    st.session_state.page = 'prop'
+
     st.session_state.textboxes = {}
 
     for textbox in TextBox.all_textboxes:
@@ -134,7 +136,7 @@ def set_up():
 
     st.session_state.reached_conclusion = None
 
-if "main_proof" not in st.session_state:
+if not ("page" in st.session_state and st.session_state.page == 'prop'):
     set_up()
 
 #st.subheader("Step 1: Choose Assumptions")

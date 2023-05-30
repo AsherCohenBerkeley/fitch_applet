@@ -132,6 +132,24 @@ univ_intro_subproof_assumption_textbox = TextBox(
     lambda t: r"\boxed{" + t.latex() + r'}'
     )
 
+exist_elim_subproof_formula_textbox = TextBox(
+    "exist_elim_subproof_formula_textbox",
+    "LaTeX Formula", 
+    None, 
+    Pred_Form.parse, 
+    ParsingError, 
+    Pred_Form.latex
+    )
+
+exist_elim_subproof_constant_textbox = TextBox(
+    "exist_elim_subproof_constant_textbox",
+    "New Constant Name", 
+    None, 
+    new_const_parsing_func, 
+    ParsingError, 
+    lambda t: r"\boxed{" + t.latex() + r'}'
+    )
+
 change_line_textbox1 = TextBox(
     "change_line_textbox1",
     "LaTeX Formula", 
@@ -155,6 +173,8 @@ change_line_textbox2 = TextBox(
 ##########
 
 def set_up():
+    st.session_state.page = 'pred'
+
     st.session_state.textboxes = {}
 
     for textbox in TextBox.all_textboxes:
@@ -169,7 +189,7 @@ def set_up():
 
     st.session_state.reached_conclusion = None
 
-if "main_proof" not in st.session_state:
+if not ("page" in st.session_state and st.session_state.page == 'pred'):
     set_up()
 
 #st.subheader("Step 1: Choose Assumptions")
@@ -442,5 +462,48 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
                     on_click=univ_intro_exit_current_subproof_button, 
                     disabled=(st.session_state.current_subproof.parent is None) or len(st.session_state.current_subproof.subproofs) == 0)
 
+    with tab3:
 
+        col0, col1, col2, col3, col4 = st.columns([x1/2, x1/2, x2, x3, x4])
+
+        with col0:
+            st.markdown('')
+            exist_elim_subproof_formula_textbox.deploy()
+
+        with col1:
+            st.markdown('')
+            exist_elim_subproof_constant_textbox.deploy()
+
+        with col3:
+
+            def exist_elim_start_new_subproof_button(form, term):
+                new_subproof = Proof([ExistElimAssumptionLine(form, term.value)])
+                st.session_state.current_subproof.add_last(new_subproof)
+                st.session_state.current_subproof = new_subproof
+                st.session_state.bad_comments = None
+            st.button("Start New Subproof", 
+                      key='exist_elim_start_new_subproof_button',
+                    on_click=exist_elim_start_new_subproof_button, 
+                    args=(st.session_state.textboxes['exist_elim_subproof_formula_textbox']['value'],st.session_state.textboxes['exist_elim_subproof_constant_textbox']['value']),
+                    disabled=not (isinstance(st.session_state.textboxes['exist_elim_subproof_formula_textbox']['value'], Pred_Form) and isinstance(st.session_state.textboxes['exist_elim_subproof_constant_textbox']['value'], Pred_Term)))
+        
+            def exist_elim_delete_current_subproof_button():
+                st.session_state.current_subproof.self_delete()
+                st.session_state.current_subproof = st.session_state.current_subproof.parent
+                st.session_state.bad_comments = None
+                
+            st.button("Delete Current Subproof", 
+                      key = 'exist_elim_delete_current_subproof_button',
+                    on_click=exist_elim_delete_current_subproof_button, 
+                    disabled=st.session_state.current_subproof.parent is None)
+            
+            def exist_elim_exit_current_subproof_button():
+                st.session_state.current_subproof = st.session_state.current_subproof.parent
+                st.session_state.bad_comments = None
+                
+            st.button("Exit Current Subproof", 
+                      key='exist_elim_exit_current_subproof_button',
+                    on_click=exist_elim_exit_current_subproof_button, 
+                    disabled=(st.session_state.current_subproof.parent is None) or len(st.session_state.current_subproof.subproofs) == 0)
+            
     st.button('Start Over', on_click=set_up)
