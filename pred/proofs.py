@@ -18,6 +18,26 @@ class Proof():
         self.parent = None
         self.subproofs = []
 
+    def vars_to_define(self):
+        output = 1
+        for sub in self.sub:
+            if isinstance(sub, Proof):
+                output += sub.vars_to_define()
+        return output
+    
+    def __repr__(self):
+        def aux(self, ord_current_letter):
+            current_proof_letter = chr(ord_current_letter)
+            output = f'{current_proof_letter} = Proof({self.assumptions.__repr__()}) \n'
+            for sub in self.subproofs:
+                if isinstance(sub, DeductionLine):
+                    output += f'{current_proof_letter}.add_last({sub.__repr__()}) \n'
+                else:
+                    output += aux(sub, ord_current_letter+1)
+                    ord_current_letter += sub.vars_to_define() + 1
+            return output
+        return aux(self, ord('a'))
+
     def __str__(self):
         def aux(self, n):
             output = ''
@@ -32,6 +52,14 @@ class Proof():
             return output
         return aux(self, 0)
     
+    def consts(self):
+        output = []
+        for line in self.assumptions:
+            output = output + line.consts()
+        for sub in self.subproofs:
+            output = output + sub.consts()
+        return output
+
     def latex(self):
         def first(self):
             output = ''
@@ -46,7 +74,12 @@ class Proof():
             output += r"\begin{array}{|l}"+ '\n'
 
             for a in self.assumptions:
-                output += a.formula.latex() + r'\\'+ '\n'
+                if isinstance(a, NormalAssumptionLine):
+                    output += a.formula.latex() + r'\\'+ '\n'
+                elif isinstance(a, UnivIntroAssumptionLine):
+                    output += r'\boxed{' + a.const_name + r'}' + r'\\'+ '\n'
+                else:
+                    raise ProofError('case not accounted for in Proof.latex')
             if len(self.assumptions) > 0:
                 output += r'\hline'+ '\n'
             
@@ -185,6 +218,8 @@ class Proof():
             if not self.accessible(line_number, n):
                     return BadComment(f'Line {line_number} is not accessible at this line.')
             line = self.find(line_number)
+            if not (isinstance(line, DeductionLine) or isinstance(line, NormalAssumptionLine)):
+                return BadComment(f'Line {line_number} does not contain a formula and thus cannot be cited for this rule.')
             cit_formulas.append(line.formula)
 
         #Deal with formula ranges
@@ -488,6 +523,36 @@ class Proof():
                 return BadComment(f'the cited formula is not the result of substituting a term for {var_name} in the deduced formula.')
             
             return GoodComment()
+        
+        elif rule_name == r'\forall I':
+            cit_subproof = cit_subproofs[0]
+
+            if not isinstance(cit_subproof.first(), UnivIntroAssumptionLine):
+                return BadComment('The cited subproof does not begin with a boxed constant.')
+            const_name = cit_subproof.first().const_name
+
+            subproof_to_skip = cit_subproof
+            current_subproof = cit_subproof.parent
+            while isinstance(current_subproof, Proof):
+                for sub in current_subproof.assumptions+current_subproof.subproofs:
+                    if sub == subproof_to_skip:
+                        continue
+                    if const_name in sub.consts():
+                        return BadComment('The cited subproof begins with a constant that appears elsewhere in the proof.')
+                subproof_to_skip = current_subproof
+                current_subproof = current_subproof.parent
+
+            if not (main_formula.ctgy == 'quant' and len(main_formula.value)>len(r'\forall') and main_formula.value[:len(r'\forall')]==r'\forall'):
+                return BadComment('The deduced formula is not a universal quantification.')
+            var_name = main_formula.value[-2]
+            phi = main_formula.sub[0]
+
+            if not (cit_subproof.last().formula.eq_syntax(substitute_form(phi, var_name, Pred_Term('const', const_name, None)))):
+                return BadComment('The end of the cited subproof is not the same as the deduced formula with the relevant substitution.')
+            
+            return GoodComment()
+
+
 
         if rule_name in rules:
             raise ProofError('rule not covered by check_line method, fix by editing Proof.check_line')

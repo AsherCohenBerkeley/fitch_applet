@@ -2,7 +2,7 @@ from pred.symbols import *
 import random
 
 class ParsingError(LogicError):
-    note = "We couldn't parse the above formula. Are you sure it's written in LaTeX with lowercase letters?"
+    note = "We couldn't parse the above formula. Are you sure it's written in LaTeX?"
     pass
 
 class TermError(ParsingError):
@@ -17,7 +17,7 @@ class Pred_Term:
         self.value = value
         self.sub = sub
     def __repr__(self):
-        return f'Pred_Term({self.ctgy, self.value, self.sub})'
+        return f'Pred_Term({self.ctgy}, {self.value}, {self.sub})'
     def latex(self):
         if self.ctgy == 'func':
             output = f'{self.value}('
@@ -38,13 +38,23 @@ class Pred_Term:
                 output = output | sub.free()
             return output
     def eq_syntax(self, other):
+        if not isinstance(other, Pred_Term):
+            return False
         return self.latex() == other.latex()
     def parse(string):
         string = string.replace(' ', '')
         if len(string) == 0:
             raise TermError(ParsingError.note)
-        if string[0] == 'c' and len(string) <= 3:
-            return Pred_Term('const', string, None)
+        if string[0] == 'c':
+            if len(string) == 1:
+                return Pred_Term('const', string, None)
+            if string[1] == '_':
+                try:
+                    int(string[2:])
+                    return Pred_Term('const', string[:2] + r'{' + string[2:] + r'}', None)
+                except ValueError:
+                    raise TermError(ParsingError.note)
+            raise TermError(ParsingError.note)
         elif len(string) == 1:
             return Pred_Term('var', string, None)
         elif string[1] == '(' and string[-1] == ')':
@@ -53,6 +63,16 @@ class Pred_Term:
             except TermError:
                 return Pred_Term('func', string[0], [Pred_Term.parse(string[2:-1])])
         raise TermError(ParsingError.note)
+    def consts(self):
+        if self.ctgy == 'const':
+            return [self.value]
+        elif self.ctgy == 'var':
+            return []
+        elif self.ctgy == 'func':
+            output = []
+            for sub in self.sub:
+                output += sub.consts()
+            return output
 
 def indices(string, sub):
 	if sub not in string:
@@ -71,9 +91,11 @@ class Pred_Form:
         self.value = value
         self.sub = sub
     def __repr__(self):
-        return f'Pred_Form({self.ctgy, self.value, self.sub})'
-    def eq_syntax(self1,self2):
-        return self1.latex() == self2.latex()
+        return f'Pred_Form({self.ctgy}, {self.value}, {self.sub})'
+    def eq_syntax(self,other):
+        if not isinstance(other, Pred_Form):
+            return False
+        return self.latex() == other.latex()
     def latex(self):
         if self.ctgy == 'identity':
             return f'{self.sub[0].latex()} = {self.sub[1].latex()}'
@@ -109,6 +131,11 @@ class Pred_Form:
                     output = output | aux(sub, bound_so_far)
                 return output
         return aux(self, set([]))
+    def consts(self):
+        output = []
+        for sub in self.sub:
+            output += sub.consts()
+        return output
     def parse(string):
         string = string.replace(' ', '')
         string = string.replace(r'\rightarrow', r'\to')
@@ -186,6 +213,9 @@ class SubstitutionError(LogicError):
     pass
 
 def substitutable(tree, var, term_free):
+    """
+    var should be input as a string
+    """
     def aux(tree, var, term_free, bound_so_far):
         """substitute term for var in tree"""
         if tree.ctgy == "identity" or tree.ctgy == 'pred':
@@ -229,6 +259,10 @@ def substitute_term(tree, var, term):
         )
 
 def substitute_form(tree, var, term):
+    """
+    var should be input as a string \n
+    term should be a tree
+    """
     term_free = term.free()
     if not substitutable(tree, var, term_free):
         raise SubstitutionError('trying to substitute something that is not substitutable')

@@ -112,6 +112,26 @@ subproof_assumption_textbox = TextBox(
     Pred_Form.latex
     )
 
+def new_const_parsing_func(string):
+    try:
+        form = Pred_Term.parse(string)
+    except ParsingError:
+        raise ParsingError("We couldn't parse the above expression. Are you sure this is a constant name written in LaTeX?")
+    if not form.ctgy == 'const':
+        raise ParsingError('The above is interpreted as a variable or function-based expression, not a constant.')
+    if form.value in st.session_state.main_proof.consts():
+        raise ParsingError("This constant already appears in the proof.")
+    return form
+
+univ_intro_subproof_assumption_textbox = TextBox(
+    "univ_intro_subproof_assumption_textbox",
+    "New Constant Name", 
+    None, 
+    new_const_parsing_func, 
+    ParsingError, 
+    lambda t: r"\boxed{" + t.latex() + r'}'
+    )
+
 change_line_textbox1 = TextBox(
     "change_line_textbox1",
     "LaTeX Formula", 
@@ -184,7 +204,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
     ##############################
 
     if st.session_state.main_proof is None:
-        st.session_state.main_proof = Proof(list(map(lambda x: AssumptionLine(x),st.session_state.textboxes['assumptions_textbox']['value'])))
+        st.session_state.main_proof = Proof(list(map(lambda x: NormalAssumptionLine(x),st.session_state.textboxes['assumptions_textbox']['value'])))
         st.session_state.current_subproof = st.session_state.main_proof
 
     st.session_state.current_subproof.add_last(DeductionLine(Blank(), Blank()))
@@ -336,8 +356,6 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
     ######################
 
     st.subheader("Or start a new subproof!")
-    
-    st.markdown('')
 
     x3, x4 = 1.5, 0.1
 
@@ -345,40 +363,84 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
     x1 = o1*(x3+x4)/(o3+o4)
 
-    col1, col2, col3, col4 = st.columns([x1, x2, x3, x4])
+    tab1, tab2, tab3 = st.tabs(["Normal Subproof", "Universal Introduction Subproof", "Existential Elimination Subproof"])
 
-    with col1:
-        st.markdown('')
-        subproof_assumption_textbox.deploy()
+    with tab1:
 
-    with col3:
+        col1, col2, col3, col4 = st.columns([x1, x2, x3, x4])
 
-        def start_new_subproof_button(formula):
-            new_subproof = Proof([AssumptionLine(formula)])
-            st.session_state.current_subproof.add_last(new_subproof)
-            st.session_state.current_subproof = new_subproof
-            st.session_state.bad_comments = None
-        st.button("Start New Subproof", 
-                  on_click=start_new_subproof_button, 
-                  args=(st.session_state.textboxes['subproof_assumption_textbox']['value'],),
-                  disabled=not isinstance(st.session_state.textboxes['subproof_assumption_textbox']['value'], Pred_Form))
-    
-        def delete_current_subproof_button():
-            st.session_state.current_subproof.self_delete()
-            st.session_state.current_subproof = st.session_state.current_subproof.parent
-            st.session_state.bad_comments = None
-            
-        st.button("Delete Current Subproof", 
-                  on_click=delete_current_subproof_button, 
-                  disabled=st.session_state.current_subproof.parent is None)
+        with col1:
+            st.markdown('')
+            subproof_assumption_textbox.deploy()
+
+        with col3:
+
+            def start_new_subproof_button(formula):
+                new_subproof = Proof([NormalAssumptionLine(formula)])
+                st.session_state.current_subproof.add_last(new_subproof)
+                st.session_state.current_subproof = new_subproof
+                st.session_state.bad_comments = None
+            st.button("Start New Subproof", 
+                    on_click=start_new_subproof_button, 
+                    args=(st.session_state.textboxes['subproof_assumption_textbox']['value'],),
+                    disabled=not isinstance(st.session_state.textboxes['subproof_assumption_textbox']['value'], Pred_Form))
         
-        def exit_current_subproof_button():
-            st.session_state.current_subproof = st.session_state.current_subproof.parent
-            st.session_state.bad_comments = None
+            def delete_current_subproof_button():
+                st.session_state.current_subproof.self_delete()
+                st.session_state.current_subproof = st.session_state.current_subproof.parent
+                st.session_state.bad_comments = None
+                
+            st.button("Delete Current Subproof", 
+                    on_click=delete_current_subproof_button, 
+                    disabled=st.session_state.current_subproof.parent is None)
             
-        st.button("Exit Current Subproof", 
-                  on_click=exit_current_subproof_button, 
-                  disabled=(st.session_state.current_subproof.parent is None) or len(st.session_state.current_subproof.subproofs) == 0)
+            def exit_current_subproof_button():
+                st.session_state.current_subproof = st.session_state.current_subproof.parent
+                st.session_state.bad_comments = None
+                
+            st.button("Exit Current Subproof", 
+                    on_click=exit_current_subproof_button, 
+                    disabled=(st.session_state.current_subproof.parent is None) or len(st.session_state.current_subproof.subproofs) == 0)
+    
+    with tab2:
+
+        col1, col2, col3, col4 = st.columns([x1, x2, x3, x4])
+
+        with col1:
+            st.markdown('')
+            univ_intro_subproof_assumption_textbox.deploy()
+
+        with col3:
+
+            def univ_intro_start_new_subproof_button(term):
+                new_subproof = Proof([UnivIntroAssumptionLine(term.value)])
+                st.session_state.current_subproof.add_last(new_subproof)
+                st.session_state.current_subproof = new_subproof
+                st.session_state.bad_comments = None
+            st.button("Start New Subproof", 
+                      key='univ_intro_start_new_subproof_button',
+                    on_click=univ_intro_start_new_subproof_button, 
+                    args=(st.session_state.textboxes['univ_intro_subproof_assumption_textbox']['value'],),
+                    disabled=not isinstance(st.session_state.textboxes['univ_intro_subproof_assumption_textbox']['value'], Pred_Term))
+        
+            def univ_intro_delete_current_subproof_button():
+                st.session_state.current_subproof.self_delete()
+                st.session_state.current_subproof = st.session_state.current_subproof.parent
+                st.session_state.bad_comments = None
+                
+            st.button("Delete Current Subproof", 
+                      key = 'univ_intro_delete_current_subproof_button',
+                    on_click=univ_intro_delete_current_subproof_button, 
+                    disabled=st.session_state.current_subproof.parent is None)
+            
+            def univ_intro_exit_current_subproof_button():
+                st.session_state.current_subproof = st.session_state.current_subproof.parent
+                st.session_state.bad_comments = None
+                
+            st.button("Exit Current Subproof", 
+                      key='univ_intro_exit_current_subproof_button',
+                    on_click=univ_intro_exit_current_subproof_button, 
+                    disabled=(st.session_state.current_subproof.parent is None) or len(st.session_state.current_subproof.subproofs) == 0)
 
 
     st.button('Start Over', on_click=set_up)
