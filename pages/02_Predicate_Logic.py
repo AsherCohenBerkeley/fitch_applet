@@ -24,7 +24,7 @@ class TextBox():
     def deploy(self):
 
         new_input = st.text_input(self.above_text_box, key = self.id, disabled = st.session_state.textboxes[self.id]['disabled'])
-        
+
         if len(new_input) == 0:
             st.session_state.textboxes[self.id]['value'] = self.default_value
             st.session_state.textboxes[self.id]['error'] = False
@@ -66,8 +66,8 @@ def special_parser(string):
     
     return list(map(Pred_Form.parse, new_string.split(';')))
 
-assumptions_textbox = TextBox(
-    "assumptions_textbox",
+pred_assumptions_textbox = TextBox(
+    "pred_assumptions_textbox",
     "Premises",
     [], 
     special_parser,
@@ -76,8 +76,8 @@ assumptions_textbox = TextBox(
     custom_error_message="We can't parse the above formulas. Are you sure they're written in LaTeX and separated by commas?"
 )
 
-conclusion_textbox = TextBox(
-    "conclusion_textbox",
+pred_conclusion_textbox = TextBox(
+    "pred_conclusion_textbox",
     "Conclusion", 
     None, 
     Pred_Form.parse, 
@@ -85,8 +85,8 @@ conclusion_textbox = TextBox(
     Pred_Form.latex
     )
 
-new_line_textbox1 = TextBox(
-    "new_line_textbox1",
+pred_new_line_textbox1 = TextBox(
+    "pred_new_line_textbox1",
     "LaTeX Formula", 
     None, 
     Pred_Form.parse, 
@@ -94,8 +94,8 @@ new_line_textbox1 = TextBox(
     Pred_Form.latex
     )
 
-new_line_textbox2 = TextBox(
-    "new_line_textbox2",
+pred_new_line_textbox2 = TextBox(
+    "pred_new_line_textbox2",
     "Deduction Rule", 
     None, 
     Rule.parse, 
@@ -103,8 +103,8 @@ new_line_textbox2 = TextBox(
     Rule.latex
     )
 
-subproof_assumption_textbox = TextBox(
-    "subproof_assumption_textbox",
+pred_subproof_assumption_textbox = TextBox(
+    "pred_subproof_assumption_textbox",
     "Subproof Assumption", 
     None, 
     Pred_Form.parse, 
@@ -150,8 +150,8 @@ exist_elim_subproof_constant_textbox = TextBox(
     lambda t: r"\boxed{" + t.latex() + r'}'
     )
 
-change_line_textbox1 = TextBox(
-    "change_line_textbox1",
+pred_change_line_textbox1 = TextBox(
+    "pred_change_line_textbox1",
     "LaTeX Formula", 
     None, 
     Pred_Form.parse, 
@@ -159,8 +159,8 @@ change_line_textbox1 = TextBox(
     Pred_Form.latex
     )
 
-change_line_textbox2 = TextBox(
-    "change_line_textbox2",
+pred_change_line_textbox2 = TextBox(
+    "pred_change_line_textbox2",
     "Deduction Rule", 
     None, 
     Rule.parse, 
@@ -202,29 +202,29 @@ col1, col2, col3 = st.columns([4, 2, 1.6])
 
 with col1:
 
-    assumptions_textbox.deploy()
+    pred_assumptions_textbox.deploy()
 
 with col2:
 
-    conclusion_textbox.deploy()
+    pred_conclusion_textbox.deploy()
 
 with col3:
     st.markdown("")
         
     def when_assumptions_clicked():
-        st.session_state.textboxes['assumptions_textbox']['disabled'] = True
-        st.session_state.textboxes['conclusion_textbox']['disabled'] = True
+        st.session_state.textboxes['pred_assumptions_textbox']['disabled'] = True
+        st.session_state.textboxes['pred_conclusion_textbox']['disabled'] = True
 
-    st.button('Start Natural Deduction Proof', on_click = when_assumptions_clicked, disabled=isinstance(st.session_state.textboxes['assumptions_textbox']['error'], Exception) or st.session_state.textboxes['assumptions_textbox']['disabled'] or (not isinstance(st.session_state.textboxes['conclusion_textbox']['value'], Pred_Form)))
+    st.button('Start Natural Deduction Proof', on_click = when_assumptions_clicked, disabled=isinstance(st.session_state.textboxes['pred_assumptions_textbox']['error'], Exception) or st.session_state.textboxes['pred_assumptions_textbox']['disabled'] or (not isinstance(st.session_state.textboxes['pred_conclusion_textbox']['value'], Pred_Form)))
 
-if st.session_state.textboxes['assumptions_textbox']['disabled']:
+if st.session_state.textboxes['pred_assumptions_textbox']['disabled']:
 
     ##############################
     # DISPLAY PROOF AND COMMENTS #
     ##############################
 
     if st.session_state.main_proof is None:
-        st.session_state.main_proof = Proof(list(map(lambda x: NormalAssumptionLine(x),st.session_state.textboxes['assumptions_textbox']['value'])))
+        st.session_state.main_proof = Proof(list(map(lambda x: NormalAssumptionLine(x),st.session_state.textboxes['pred_assumptions_textbox']['value'])))
         st.session_state.current_subproof = st.session_state.main_proof
 
     st.session_state.current_subproof.add_last(DeductionLine(Blank(), Blank()))
@@ -244,7 +244,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
             
             st.session_state.bad_comments = [(i+1, comment) for (i, comment) in enumerate(comments) if isinstance(comment, BadComment)]
 
-            st.session_state.reached_conclusion = st.session_state.current_subproof == st.session_state.main_proof and len(st.session_state.main_proof.subproofs) > 0 and st.session_state.main_proof.find(st.session_state.main_proof.n_lines).formula.eq_syntax(st.session_state.textboxes["conclusion_textbox"]["value"])
+            st.session_state.reached_conclusion = st.session_state.current_subproof == st.session_state.main_proof and len(st.session_state.main_proof.subproofs) > 0 and st.session_state.main_proof.find(st.session_state.main_proof.n_lines).formula.eq_syntax(st.session_state.textboxes["pred_conclusion_textbox"]["value"])
             
         st.button('Check Proof', on_click=check_proof_button)
 
@@ -272,11 +272,11 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
     with col1:
 
-        new_line_textbox1.deploy()   
+        pred_new_line_textbox1.deploy()   
 
     with col2:
 
-        new_line_textbox2.deploy()
+        pred_new_line_textbox2.deploy()
 
     st.markdown('')
 
@@ -292,12 +292,12 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
     with col1:
     
-        formula_and_rule_in_place = isinstance(st.session_state.textboxes["new_line_textbox1"]['value'], Pred_Form) and isinstance(st.session_state.textboxes["new_line_textbox2"]['value'], Rule)
+        formula_and_rule_in_place = isinstance(st.session_state.textboxes["pred_new_line_textbox1"]['value'], Pred_Form) and isinstance(st.session_state.textboxes["pred_new_line_textbox2"]['value'], Rule)
 
         def add_line_button(formula, rule):
             st.session_state.current_subproof.add_last(DeductionLine(formula, rule))
             st.session_state.bad_comments = None
-        st.button('Add Line', on_click=add_line_button, args=(st.session_state.textboxes["new_line_textbox1"]['value'], st.session_state.textboxes["new_line_textbox2"]['value']), disabled = not formula_and_rule_in_place)
+        st.button('Add Line', on_click=add_line_button, args=(st.session_state.textboxes["pred_new_line_textbox1"]['value'], st.session_state.textboxes["pred_new_line_textbox2"]['value']), disabled = not formula_and_rule_in_place)
         
         def delete_last_line_button():
             st.session_state.current_subproof = st.session_state.current_subproof.remove_last()
@@ -344,11 +344,11 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
         st.markdown('to')
 
     with col4:
-        change_line_textbox1.deploy()
+        pred_change_line_textbox1.deploy()
 
     if isinstance(line_number, str) or (isinstance(line_number, int) and isinstance(st.session_state.main_proof.find(line_number), DeductionLine)):
         with col5:
-            change_line_textbox2.deploy()
+            pred_change_line_textbox2.deploy()
 
     with col6:
         st.markdown('')
@@ -360,12 +360,12 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
         st.button("Change Line", 
                     on_click=change_line_button, 
                     args = (line_number, 
-                            st.session_state.textboxes["change_line_textbox1"]["value"],
-                            st.session_state.textboxes["change_line_textbox2"]["value"],),
+                            st.session_state.textboxes["pred_change_line_textbox1"]["value"],
+                            st.session_state.textboxes["pred_change_line_textbox2"]["value"],),
                     disabled= not(
                         isinstance(line_number, int) 
-                        and isinstance(st.session_state.textboxes["change_line_textbox1"]["value"], Pred_Form)
-                        and (isinstance(st.session_state.main_proof.find(line_number), Pred_Form) or isinstance(st.session_state.textboxes["change_line_textbox2"]["value"], Rule))
+                        and isinstance(st.session_state.textboxes["pred_change_line_textbox1"]["value"], Pred_Form)
+                        and (isinstance(st.session_state.main_proof.find(line_number), Pred_Form) or isinstance(st.session_state.textboxes["pred_change_line_textbox2"]["value"], Rule))
                         )
                     )
 
@@ -391,7 +391,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
         with col1:
             st.markdown('')
-            subproof_assumption_textbox.deploy()
+            pred_subproof_assumption_textbox.deploy()
 
         with col3:
 
@@ -402,8 +402,8 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
                 st.session_state.bad_comments = None
             st.button("Start New Subproof", 
                     on_click=start_new_subproof_button, 
-                    args=(st.session_state.textboxes['subproof_assumption_textbox']['value'],),
-                    disabled=not isinstance(st.session_state.textboxes['subproof_assumption_textbox']['value'], Pred_Form))
+                    args=(st.session_state.textboxes['pred_subproof_assumption_textbox']['value'],),
+                    disabled=not isinstance(st.session_state.textboxes['pred_subproof_assumption_textbox']['value'], Pred_Form))
         
             def delete_current_subproof_button():
                 st.session_state.current_subproof.self_delete()
