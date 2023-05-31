@@ -359,7 +359,7 @@ class Proof():
             if not (main_formula.eq_syntax(PropNode(r'\neg', [cit_subproof.first().formula]))):
                 return BadComment("The deduced formula is not the negation of cited subproof's assumption.")
             
-            if not(cit_subproof.last().formula.eq_syntax(PropNode(r'\bot', [])) or (cit_subproof.last().name == r'\wedge' and (cit_subproof.last().sub[0].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[1]])) or cit_subproof.last().sub[1].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[0]]))))):
+            if not(cit_subproof.last().formula.eq_syntax(PropNode(r'\bot', [])) or (cit_subproof.last().formula.name == r'\wedge' and (cit_subproof.last().formula.sub[0].eq_syntax(PropNode(r'\neg',[cit_subproof.last().formula.sub[1]])) or cit_subproof.last().formula.sub[1].eq_syntax(PropNode(r'\neg',[cit_subproof.last().formula.sub[0]]))))):
                 return BadComment('The last formula of the cited subproof is not bottom or the conjunction of a formula and its negation.')
             
             return GoodComment()
@@ -370,7 +370,7 @@ class Proof():
             if not (cit_subproof.first().formula.eq_syntax(PropNode(r'\neg', [main_formula]))):
                 return BadComment("The cited subproof's assumption is not the negation of deduced formula.")
             
-            if not(cit_subproof.last().formula.eq_syntax(PropNode(r'\bot', [])) or (cit_subproof.last().name == r'\wedge' and (cit_subproof.last().sub[0].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[1]])) or cit_subproof.last().sub[1].eq_syntax(PropNode(r'\neg',[cit_subproof.last().sub[0]]))))):
+            if not(cit_subproof.last().formula.eq_syntax(PropNode(r'\bot', [])) or (cit_subproof.last().formula.name == r'\wedge' and (cit_subproof.last().formula.sub[0].eq_syntax(PropNode(r'\neg',[cit_subproof.last().formula.sub[1]])) or cit_subproof.last().formula.sub[1].eq_syntax(PropNode(r'\neg',[cit_subproof.last().formula.sub[0]]))))):
                 return BadComment('The last formula of the cited subproof is not bottom or the conjunction of a formula and its negation.')
             
             return GoodComment()
