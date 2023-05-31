@@ -144,11 +144,16 @@ st.write("But the most useful feature of this applet is its **automatic proof ch
 
 st.write("**IMPORTANT NOTE**: Even if the proof checker only signals that a couple lines are faulty, that does not mean those are the only lines that need to be changed in order to arrive at a correct proof. Incorrect proofs often require substantial reorganization before they are syntactically correct.")
 
+st.subheader("Special Subproofs in Predicate Logic")
+
+st.write(r"In our proof system for propositional logic, all subproofs have the same general form: namely, they all start with a grammatical formula as their assumption and continue with correct deductions, possibly with other embedded subproofs. However, as you learn later in the course, predicate logic differs in this respect. In particular, two of our predicate logical deduction rules, $\forall I$ and $\exists E$ require subproofs with a special syntax. This is reflected in this applet with seperate tabs for creating those special subproofs.")
+
+st.write(r"**IMPORTANT NOTE**: Both of these special subproofs require introducing a new constant symbol. **:blue[In this applet, the only symbols which are interpreted as constant symbols instead of variable symbols are '$c$' or the '$c_i$' for some integer $i$. Make sure to only use these symbols when performing $\forall I$ or $\exists E$.]**")
+
 st.subheader("Additional Help")
 
 st.write("If at any point you're having trouble with any part of this website, please feel free to make a post on Ed Discussion. We (the course staff) would be more than happy to help.")
 
 st.write("This website was also developed very recently, so it's possible there are some bugs in the underlying code. If you think you may have noticed a bug, again please make a post on Ed Discussion, detailing exactly what you did to arrive at the bug, ideally including screenshots.")
 
-st.write('')
-st.write("Thank you so much for reading along, and good luck with your Fitch-style proofs!")
+st.write("**Thank you so much for reading along, and good luck with your Fitch-style proofs!**")
