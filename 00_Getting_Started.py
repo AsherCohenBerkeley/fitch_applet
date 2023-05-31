@@ -4,7 +4,7 @@ from pred.rules import *
 
 st.title(':books: Getting Started')
 
-st.write("Hello, everyone! Welcome to Philos W12A's interface for writing and checking Fitch-style natural deduction proofs! If you're still feeling shaky about natural deduction even after watching the lectures, don't worry. The practice you get from this website should really help solidify a lot of the key concepts taught in the course.")
+st.write("Hello, everyone! Welcome to Philos W12A's interface for writing and checking Fitch-style natural deduction proofs! If you're still feeling shaky about natural deduction even after watching the lectures, don't worry. The practice you get from using this website should really help solidify your understanding of natural deduction.")
 
 st.write("To familiarize yourself with the basics of how to use this applet, we recommend you read the entirety of this 'Getting Started' page before you start writing your natural deduction proofs. Not to mention, reading this page will help review some key concepts from the course.")
 
