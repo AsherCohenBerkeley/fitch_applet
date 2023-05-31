@@ -98,7 +98,7 @@ class Pred_Form:
         return self.latex() == other.latex()
     def latex(self):
         if self.ctgy == 'identity':
-            return f'{self.sub[0].latex()} = {self.sub[1].latex()}'
+            return f'({self.sub[0].latex()} = {self.sub[1].latex()})'
         if self.ctgy == 'pred':
             output = f'{self.value}('
             for sub in self.sub:
