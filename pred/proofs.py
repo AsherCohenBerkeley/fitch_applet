@@ -572,8 +572,6 @@ class Proof():
 
             if const_name in cit_subproof.last().formula.consts():
                 return BadComment('the cited subproof ends with a formula, which contains the new constant.')
-            
-            print(const_name)
 
             if not (substitute_form(phi, var_name, Pred_Term('const', const_name, None)).eq_syntax(phi_subbed)):
                 return BadComment('the cited subproof does not begin with the cited existential with the existentially quantified variable substituted for the relevant constant.')

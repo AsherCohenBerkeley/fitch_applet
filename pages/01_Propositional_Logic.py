@@ -367,5 +367,6 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
                   on_click=exit_current_subproof_button, 
                   disabled=(st.session_state.current_subproof.parent is None) or len(st.session_state.current_subproof.subproofs) == 0)
 
-
+    st.markdown('')
+    st.markdown('')
     st.button('Start Over', on_click=set_up)
