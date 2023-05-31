@@ -104,7 +104,7 @@ idx_col = 0
 i = 0
 for name, cit in prop_rules.items():
     with cols[idx_col]:
-        st.latex(Rule(name, ('\#',)*cit.count('%s')).latex().replace('-', '--'))
+        st.latex(Rule(name, ('\#',)*cit.count('%s')).latex().replace(r'\text{-}', r'\text{--}'))
     i += 1
     if i == per_col:
         idx_col += 1
