@@ -45,7 +45,7 @@ class Rule():
             raise RuleError(f'incorrect number of lines for rule {name}')
     
     def latex(self):
-        name = self.name.replace(r'\to', r'\to \!').replace(r'\leftrightarrow', r'\leftrightarrow \!')
+        name = self.name.replace(r'\to', r'\to \!').replace(r'=', r'= \!').replace(r'\leftrightarrow', r'\leftrightarrow \!')
         citation = self.cit.replace(r'-', r'\text{-}')
         return f'{name}\; {citation}'
     
