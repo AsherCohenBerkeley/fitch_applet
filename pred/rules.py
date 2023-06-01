@@ -44,8 +44,11 @@ class Rule():
         except TypeError:
             raise RuleError(f'incorrect number of lines for rule {name}')
     
+    def latex_name(name):
+        return name.replace(r'\to', r'\to \!').replace(r'=', r'= \!').replace(r'\leftrightarrow', r'\leftrightarrow \!')
+
     def latex(self):
-        name = self.name.replace(r'\to', r'\to \!').replace(r'=', r'= \!').replace(r'\leftrightarrow', r'\leftrightarrow \!')
+        name = Rule.latex_name(self.name)
         citation = self.cit.replace(r'-', r'\text{-}')
         return f'{name}\; {citation}'
     
@@ -69,10 +72,10 @@ class Rule():
 
         original_format = string
 
-        citation_error_message = f"""We couldn't parse the line citation "{original_format}". As a reminder, the line citation for ${name}$ should be of the form {rules[name]%(('#',)*rules[name].count('%s'))} where # is a line number."""
+        citation_error_message = f"""We couldn't parse the line citation "{original_format}". As a reminder, the line citation for ${Rule.latex_name(name)}$ should be of the form {rules[name]%(('#',)*rules[name].count('%s'))} where # is a line number."""
 
         if rules[name] == '':
-            citation_error_message = f"""We couldn't parse the line citation "{original_format}". As a reminder, there should be no lines cited for ${name}$."""
+            citation_error_message = f"""We couldn't parse the line citation "{original_format}". As a reminder, there should be no lines cited for ${Rule.latex_name(name)}$."""
             if string != '':
                 raise CitationError(citation_error_message)
             else:
