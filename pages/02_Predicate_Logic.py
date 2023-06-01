@@ -10,7 +10,7 @@ st.markdown('')
 class TextBox():
     all_textboxes = []
 
-    def __init__(self, id, above_text_box, default_value, parsing_func, error_class, display_func, custom_error_message = None):
+    def __init__(self, id, above_text_box, default_value, parsing_func, error_class, display_func, custom_error_message = None, placeholder = None):
         self.id = id
         self.above_text_box = above_text_box
         self.default_value = default_value
@@ -18,12 +18,13 @@ class TextBox():
         self.error_class = error_class
         self.display_func = display_func
         self.custom_error_message = custom_error_message
+        self.placeholder = placeholder
 
         TextBox.all_textboxes.append(self)
     
     def deploy(self):
 
-        new_input = st.text_input(self.above_text_box, key = self.id, disabled = st.session_state.textboxes[self.id]['disabled'])
+        new_input = st.text_input(self.above_text_box, key = self.id, disabled = st.session_state.textboxes[self.id]['disabled'], placeholder=self.placeholder)
 
         if len(new_input) == 0:
             st.session_state.textboxes[self.id]['value'] = self.default_value
@@ -73,7 +74,8 @@ pred_assumptions_textbox = TextBox(
     special_parser,
     ParsingError,
     assumptions_display,
-    custom_error_message="We can't parse the above formulas. Are you sure they're written in LaTeX and separated by commas?"
+    custom_error_message="We can't parse the above formulas. Are you sure they're written in LaTeX and separated by commas?",
+    placeholder=r'(e.g. P(c), \forall x x=y)'
 )
 
 pred_conclusion_textbox = TextBox(
@@ -82,7 +84,8 @@ pred_conclusion_textbox = TextBox(
     None, 
     Pred_Form.parse, 
     ParsingError, 
-    Pred_Form.latex
+    Pred_Form.latex,
+    placeholder=r'(e.g. \forall x P(x))'
     )
 
 pred_new_line_textbox1 = TextBox(
