@@ -75,7 +75,7 @@ pred_assumptions_textbox = TextBox(
     ParsingError,
     assumptions_display,
     custom_error_message="We can't parse the above formulas. Are you sure they're written in LaTeX and separated by commas?",
-    placeholder=r'(e.g. P(c), \forall x x=y)'
+    placeholder=r'(e.g. P(c), \forall x \forall y x=y)'
 )
 
 pred_conclusion_textbox = TextBox(
