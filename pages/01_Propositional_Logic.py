@@ -194,7 +194,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
             
             st.session_state.bad_comments = [(i+1, comment) for (i, comment) in enumerate(comments) if isinstance(comment, BadComment)]
 
-            st.session_state.reached_conclusion = st.session_state.current_subproof == st.session_state.main_proof and len(st.session_state.main_proof.subproofs) > 0 and st.session_state.main_proof.find(st.session_state.main_proof.n_lines).formula.eq_syntax(st.session_state.textboxes["conclusion_textbox"]["value"])
+            st.session_state.reached_conclusion = st.session_state.current_subproof == st.session_state.main_proof and len(st.session_state.main_proof.subproofs) > 0 and isinstance(st.session_state.main_proof.subproofs[-1], DeductionLine) and st.session_state.main_proof.find(st.session_state.main_proof.n_lines).formula.eq_syntax(st.session_state.textboxes["conclusion_textbox"]["value"])
             
         st.button('Check Proof', on_click=check_proof_button)
 
