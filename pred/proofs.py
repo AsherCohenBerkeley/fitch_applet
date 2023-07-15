@@ -249,6 +249,12 @@ class Proof():
                 if not (len(subproof.assumptions) == 1 and line1 == subproof.assumptions[0]): 
                     return BadComment(f'The range {line_number1}-{line_number2} does not encompass a subproof.')
                 
+                if subproof.parent == None:
+                    return BadComment(f'The range {line_number1}-{line_number2} does not encompass a subproof.')
+                
+                if subproof.n_lines != (line_number2-line_number1+1):
+                    return BadComment(f'The range {line_number1}-{line_number2} does not encompass a subproof.')
+                
                 if not (subproof.parent.parent == None or self.accessible(main_proof.find_line_number(subproof.parent.first()), n)):
                     return BadComment(f'The subproof {line_number1}-{line_number2} is not accessible at this line.')
                 
