@@ -386,7 +386,7 @@ class Proof():
                 return BadComment('The deduced formula is not bottom.')
             
             if not (cit_formulas[0].eq_syntax(Pred_Form('conn', r'\neg',[cit_formulas[1]])) or cit_formulas[1].eq_syntax(Pred_Form('conn', r'\neg',[cit_formulas[0]]))):
-                return GoodComment('Neither cited formula is the negation of the other.')
+                return BadComment('Neither cited formula is the negation of the other.')
 
             return GoodComment()
         
