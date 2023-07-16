@@ -339,7 +339,7 @@ class Proof():
         elif rule_name == r'EFQ':
             cit_formula = cit_formulas[0]
             if not (cit_formula.name == r'\wedge' and (cit_formula.sub[0].eq_syntax(PropNode(r'\neg',[cit_formula.sub[1]])) or cit_formula.sub[1].eq_syntax(PropNode(r'\neg',[cit_formula.sub[0]])))):
-                return BadComment('The cited formula is the conjunction of a formula and its negation.')
+                return BadComment('The cited formula is not the conjunction of a formula and its negation.')
             
             return GoodComment()
         
