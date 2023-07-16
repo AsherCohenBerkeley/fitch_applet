@@ -373,7 +373,7 @@ if st.session_state.textboxes['pred_assumptions_textbox']['disabled']:
                     disabled= not(
                         isinstance(line_number, int) 
                         and isinstance(st.session_state.textboxes["pred_change_line_textbox1"]["value"], Pred_Form)
-                        and (isinstance(st.session_state.main_proof.find(line_number), Pred_Form) or isinstance(st.session_state.textboxes["pred_change_line_textbox2"]["value"], Rule))
+                        and (isinstance(st.session_state.main_proof.find(line_number), AssumptionLine) or isinstance(st.session_state.textboxes["pred_change_line_textbox2"]["value"], Rule))
                         )
                     )
 
