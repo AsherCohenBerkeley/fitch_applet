@@ -63,6 +63,7 @@ class Rule():
         citation_error_message = f"""We couldn't parse the line citation "{original_format}". As a reminder, the line citation for ${name}$ should be of the form {rules[name]%(('#',)*rules[name].count('%s'))} where # is a line number."""
 
         original_format2 = string
+        original_format3 = string
 
         overall_check = string
         for i in range(10):
@@ -91,6 +92,16 @@ class Rule():
         for piece in number_pieces_string:
             if len(piece) == 0:
                 raise CitationError(citation_error_message)
+            
+        commas_sep_list = original_format3.replace(' ', '').split(',')
+        already_seen = []
+        for el in commas_sep_list:
+            if '-' in el:
+                continue
+            if el in already_seen:
+                raise CitationError('You cannot cite the same line twice.')
+            else:
+                already_seen.append(el)
 
         format_tuple = tuple(original_format.replace('-', ',').split(','))
         return Rule(name, format_tuple)

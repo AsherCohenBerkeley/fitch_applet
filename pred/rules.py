@@ -1,4 +1,4 @@
-from pred.symbols import *
+from prop.symbols import *
 
 rules = {
     r'\wedge E': '%s',
@@ -82,6 +82,7 @@ class Rule():
                 return Rule(name, ())
 
         original_format2 = string
+        original_format3 = string
 
         overall_check = string
         for i in range(10):
@@ -111,5 +112,15 @@ class Rule():
             if len(piece) == 0:
                 raise CitationError(citation_error_message)
 
+        commas_sep_list = original_format3.replace(' ', '').split(',')
+        already_seen = []
+        for el in commas_sep_list:
+            if '-' in el:
+                continue
+            if el in already_seen:
+                raise CitationError('You cannot cite the same line twice.')
+            else:
+                already_seen.append(el)
+        
         format_tuple = tuple(original_format.replace('-', ',').split(','))
         return Rule(name, format_tuple)
