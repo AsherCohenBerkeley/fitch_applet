@@ -556,7 +556,7 @@ class Proof():
             phi = main_formula.sub[0]
 
             if not (cit_subproof.last().formula.eq_syntax(substitute_form(phi, var_name, Pred_Term('const', const_name, None)))):
-                return BadComment('The end of the cited subproof is not the same as the deduced formula with the relevant substitution.')
+                return BadComment('The last formula of the cited subproof is not the same as the deduced formula with the relevant substitution.')
             
             return GoodComment()
 
@@ -571,7 +571,7 @@ class Proof():
             phi = cit_formula.sub[0]
 
             if not isinstance(cit_subproof.first(), ExistElimAssumptionLine):
-                return BadComment('the cited formula does not begin with a formula and a boxed constant.')
+                return BadComment('the cited subproof does not begin with a formula and a boxed constant.')
             
             phi_subbed = cit_subproof.first().formula
             const_name = cit_subproof.first().const_name

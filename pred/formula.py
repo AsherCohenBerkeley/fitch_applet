@@ -502,6 +502,8 @@ def substitute_compare_form(unsubbed, subbed, var_name):
             return [None]
         if not (len(unsubbed.sub) == len(subbed.sub)):
             return [None]
+        if unsubbed.value != subbed.value:
+            return [None]
         output = []
         for unsubbed_sub, subbed_sub in zip(unsubbed.sub, subbed.sub):
             output += substitute_compare_term(unsubbed_sub, subbed_sub, var_name)
@@ -542,4 +544,4 @@ def substitute_compare_total(unsubbed, subbed, var_name):
     output = output and substitutable(unsubbed, var_name, t.free())
     return output
 
-# print(substitute_compare_total(Pred_Form.parse(r'\forall y x = f(x)'), Pred_Form.parse(r'\forall y y = f(y)'), 'x'))
+# print(substitute_compare_total(Pred_Form.parse(r'P(x)'), Pred_Form.parse(r'Q(c)'), 'x'))
