@@ -100,6 +100,24 @@ subproof_assumption_textbox = TextBox(
     PropNode.latex
     )
 
+add_line_textbox1 = TextBox(
+    "add_line_textbox1",
+    "LaTeX Formula", 
+    None, 
+    PropNode.parse, 
+    ParsingError, 
+    PropNode.latex
+    )
+
+add_line_textbox2 = TextBox(
+    "add_line_textbox2",
+    "Deduction Rule", 
+    None, 
+    Rule.parse, 
+    RuleError, 
+    Rule.latex
+    )
+
 change_line_textbox1 = TextBox(
     "change_line_textbox1",
     "LaTeX Formula", 
@@ -260,64 +278,162 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
     # CHANGE EXISTING LINE #
     ########################
 
-    st.subheader("Change an existing line...")
+    st.subheader("Add/Change/Delete within the proof...")
     
     st.markdown('')
 
-    col1a, col1, col1b, col2, col3a, col3, col3b, col4, col5, col6 = st.columns([
-        0.6, 
-        3,
-        0.2,
-        4,
-        0.5,
-        1,
-        0.3,
-        4,
-        4,
-        4,
-    ])
+    tab1, tab2, tab3 = st.tabs(["Add Line", "Change Line", "Delete Line"])
 
-    with col1:
-        st.markdown('')
-        st.markdown('')
-        st.markdown('Change line')
+    with tab1:
 
-    with col2:
-        default_string = '---'
-        line_number = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines+1))))
-        if line_number != default_string:
-            line_number = int(line_number)
+        col0, col1, col2, col3, col4, col5, col6 = st.columns([
+            0.5,
+            3,
+            4, 
+            1,
+            4,
+            4,
+            4,
+        ])
 
-    with col3:
-        st.markdown('')
-        st.markdown('')
-        st.markdown('to')
+        with col1:
+            st.markdown('')
+            st.markdown('')
+            st.markdown('Add line after')
 
-    with col4:
-        change_line_textbox1.deploy()
+        with col2:
+            default_string = '---'
+            line_number = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines+1))), key="add_line_prop")
+            if line_number != default_string:
+                line_number = int(line_number)
 
-    if isinstance(line_number, str) or (isinstance(line_number, int) and isinstance(st.session_state.main_proof.find(line_number), DeductionLine)):
-        with col5:
-            change_line_textbox2.deploy()
+        with col3:
+            st.markdown('')
+            st.markdown('')
+            st.markdown('to')
 
-    with col6:
-        st.markdown('')
-        st.markdown('')
-        def change_line_button(line_number, formula, rule):
-            st.session_state.main_proof.change(line_number, formula, rule)
-            st.session_state.bad_comments = None
-            
-        st.button("Change Line", 
-                    on_click=change_line_button, 
-                    args = (line_number, 
-                            st.session_state.textboxes["change_line_textbox1"]["value"],
-                            st.session_state.textboxes["change_line_textbox2"]["value"],),
-                    disabled= not(
-                        isinstance(line_number, int) 
-                        and isinstance(st.session_state.textboxes["change_line_textbox1"]["value"], PropNode)
-                        and (isinstance(st.session_state.main_proof.find(line_number), AssumptionLine) or isinstance(st.session_state.textboxes["change_line_textbox2"]["value"], Rule))
+        with col4:
+            add_line_textbox1.deploy()
+
+        if isinstance(line_number, str) or (isinstance(line_number, int) and isinstance(st.session_state.main_proof.find(line_number), DeductionLine)):
+            with col5:
+                add_line_textbox2.deploy()
+
+        with col6:
+            st.markdown('')
+            st.markdown('')
+            def add_line_button(line_number, formula, rule):
+                st.session_state.main_proof.add_line(line_number, formula, rule)
+                st.session_state.bad_comments = None
+                
+            st.button("Add Line", 
+                        on_click=add_line_button, 
+                        args = (line_number, 
+                                st.session_state.textboxes["add_line_textbox1"]["value"],
+                                st.session_state.textboxes["add_line_textbox2"]["value"],),
+                        disabled= not(
+                            isinstance(line_number, int) 
+                            and isinstance(st.session_state.textboxes["add_line_textbox1"]["value"], PropNode)
+                            and (isinstance(st.session_state.main_proof.find(line_number), AssumptionLine) or isinstance(st.session_state.textboxes["add_line_textbox2"]["value"], Rule))
+                            ),
+                        key='add_line_button')
+
+    with tab2:
+
+        col1a, col1, col1b, col2, col3a, col3, col3b, col4, col5, col6 = st.columns([
+            0.6, 
+            3,
+            0.2,
+            4,
+            0.5,
+            1,
+            0.3,
+            4,
+            4,
+            4,
+        ])
+
+        with col1:
+            st.markdown('')
+            st.markdown('')
+            st.markdown('Change line')
+
+        with col2:
+            default_string = '---'
+            line_number = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines+1))), key="change_line_prop")
+            if line_number != default_string:
+                line_number = int(line_number)
+
+        with col3:
+            st.markdown('')
+            st.markdown('')
+            st.markdown('to')
+
+        with col4:
+            change_line_textbox1.deploy()
+
+        if isinstance(line_number, str) or (isinstance(line_number, int) and isinstance(st.session_state.main_proof.find(line_number), DeductionLine)):
+            with col5:
+                change_line_textbox2.deploy()
+
+        with col6:
+            st.markdown('')
+            st.markdown('')
+            def change_line_button(line_number, formula, rule):
+                st.session_state.main_proof.change(line_number, formula, rule)
+                st.session_state.bad_comments = None
+                
+            st.button("Change Line", 
+                        on_click=change_line_button, 
+                        args = (line_number, 
+                                st.session_state.textboxes["change_line_textbox1"]["value"],
+                                st.session_state.textboxes["change_line_textbox2"]["value"],),
+                        disabled= not(
+                            isinstance(line_number, int) 
+                            and isinstance(st.session_state.textboxes["change_line_textbox1"]["value"], PropNode)
+                            and (isinstance(st.session_state.main_proof.find(line_number), AssumptionLine) or isinstance(st.session_state.textboxes["change_line_textbox2"]["value"], Rule))
+                            ),
+                        key='change_line_button')
+    
+    with tab3:
+
+        col1a, col1, col1b, col2, col3a, col3, col3b, col4, col5, col6 = st.columns([
+            0.6, 
+            3,
+            0.2,
+            4,
+            0.5,
+            1,
+            0.3,
+            4,
+            4,
+            4,
+        ])
+
+        with col1:
+            st.markdown('')
+            st.markdown('')
+            st.markdown('Delete line')
+
+        with col2:
+            default_string = '---'
+            line_number_delete = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines+1))), key="delete_line_prop")
+            if line_number_delete != default_string:
+                line_number_delete = int(line_number_delete)
+
+        with col6:
+            st.markdown('')
+            st.markdown('')
+            def delete_line_button(line_number_delete):
+                st.session_state.main_proof.delete_line(line_number_delete)
+                st.session_state.bad_comments = None
+                
+            st.button("Delete Line", 
+                        on_click=delete_line_button, 
+                        args = (line_number_delete,),
+                        disabled= not(
+                            isinstance(line_number_delete, int))
                         )
-                    )
 
     st.markdown('')
 
