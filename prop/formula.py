@@ -42,6 +42,8 @@ class PropNode():
     def parse(string):
         string = string.replace(' ', '')
         string = string.replace(r'\rightarrow', r'\to')
+        string = string.replace(r'\land', r'\wedge')
+        string = string.replace(r'\lor', r'\vee')
 
         if len(string) == 1:
             if (ord('a') <= ord(string) <= ord('z')):

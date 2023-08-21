@@ -140,6 +140,8 @@ class Pred_Form:
         string = string.replace(' ', '')
         string = string.replace(r'\rightarrow', r'\to')
         string = string.replace(r'\all', r'\forall')
+        string = string.replace(r'\land', r'\wedge')
+        string = string.replace(r'\lor', r'\vee')
 
         for conn in zeroary:
             if string == conn:
