@@ -278,7 +278,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
     # CHANGE EXISTING LINE #
     ########################
 
-    st.subheader("Add/Change/Delete within the proof...")
+    st.subheader("Add/Change/Delete lines within the proof...")
     
     st.markdown('')
 

@@ -121,6 +121,59 @@ class Proof():
         self.n_lines += n_new_lines
         if self.parent is not None:
             self.parent.update_n_lines(n_new_lines)
+    
+    def add_line(self, line_number, formula, rule):
+        if not (1 <= line_number <= self.n_lines):
+            raise ProofError("trying to add after invalid line number")
+        for line in self.pure_list()[line_number:]:
+            if isinstance(line, DeductionLine):
+                old_name = line.rule.name
+                old_cit_lines = line.rule.cit_lines
+                new_name = old_name
+                new_cit_lines = []
+                for number in old_cit_lines:
+                    number = int(number)
+                    if number > line_number:
+                        new_cit_lines.append(str(number+1))
+                    else:
+                        new_cit_lines.append(str(number))
+                new_cit_lines = tuple(new_cit_lines)
+                line.rule = Rule(new_name, new_cit_lines)
+
+        relevant_line = self.pure_list()[line_number-1]
+        relevant_line.parent_proof.update_n_lines(1)
+        new_line = DeductionLine(formula, rule)
+        new_line.parent_proof = relevant_line.parent_proof
+        if isinstance(relevant_line, AssumptionLine):
+            relevant_line.parent_proof.subproofs.insert(0, new_line)
+        elif isinstance(relevant_line, DeductionLine):
+            idx = relevant_line.parent_proof.subproofs.index(relevant_line)
+            relevant_line.parent_proof.subproofs.insert(idx + 1, new_line)
+
+    def delete_line(self, line_number):
+        if not (1 <= line_number <= self.n_lines):
+            raise ProofError("trying to delete invalid line number")
+        for line in self.pure_list()[line_number-1:]:
+            if isinstance(line, DeductionLine):
+                old_name = line.rule.name
+                old_cit_lines = line.rule.cit_lines
+                new_name = old_name
+                new_cit_lines = []
+                for number in old_cit_lines:
+                    number = int(number)
+                    if number > line_number:
+                        new_cit_lines.append(str(number-1))
+                    else:
+                        new_cit_lines.append(str(number))
+                new_cit_lines = tuple(new_cit_lines)
+                line.rule = Rule(new_name, new_cit_lines)
+
+        relevant_line = self.pure_list()[line_number-1]
+        relevant_line.parent_proof.update_n_lines(-1)
+        if isinstance(relevant_line, AssumptionLine):
+            relevant_line.parent_proof.assumptions.remove(relevant_line)
+        elif isinstance(relevant_line, DeductionLine):
+            relevant_line.parent_proof.subproofs.remove(relevant_line)
 
     def add_last(self, subproof):
         if isinstance(subproof, DeductionLine):
@@ -213,6 +266,9 @@ class Proof():
 
         cit_line_numbers = [int(string) for string in cit_split if '-' not in string and len(string) > 0]
 
+        if len(set(cit_line_numbers)) != len(list(cit_line_numbers)):
+            return BadComment("The same line is being cited twice.")
+
         #Deal with individual formulas
 
         cit_formulas = []
@@ -258,6 +314,9 @@ class Proof():
                 if not (subproof.parent.parent == None or self.accessible(main_proof.find_line_number(subproof.parent.first()), n)):
                     return BadComment(f'The subproof {line_number1}-{line_number2} is not accessible at this line.')
                 
+                if subproof in cit_subproofs:
+                    return BadComment("The same subproof is being cited twice.")
+
                 cit_subproofs.append(subproof)
         
         #Logic of each individual rule
