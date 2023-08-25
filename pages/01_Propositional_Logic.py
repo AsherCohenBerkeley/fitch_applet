@@ -299,7 +299,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
         with col1:
             st.markdown('')
             st.markdown('')
-            st.markdown('Add line after')
+            st.markdown('Add after line')
 
         with col2:
             default_string = '---'
@@ -310,7 +310,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
         with col3:
             st.markdown('')
             st.markdown('')
-            st.markdown('to')
+            st.markdown('')
 
         with col4:
             add_line_textbox1.deploy()
