@@ -46,6 +46,8 @@ class Rule():
     def parse(string):
         original = string
         string = string.replace(' ', '')
+        string = string.replace(r'\land', r'\wedge')
+        string = string.replace(r'\lor', r'\vee')
         name = None
         for rule_name in rules:
             rule_name_no_space = rule_name.replace(' ', '')
