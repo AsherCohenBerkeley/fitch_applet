@@ -207,12 +207,12 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
         def check_proof_button():
             comments = []
-            for line_number in range(1, st.session_state.main_proof.n_lines + 1):
+            for line_number in range(1, st.session_state.main_proof.n_lines() + 1):
                 comments.append(st.session_state.main_proof.check_line(line_number))
             
             st.session_state.bad_comments = [(i+1, comment) for (i, comment) in enumerate(comments) if isinstance(comment, BadComment)]
 
-            st.session_state.reached_conclusion = st.session_state.current_subproof == st.session_state.main_proof and len(st.session_state.main_proof.subproofs) > 0 and isinstance(st.session_state.main_proof.subproofs[-1], DeductionLine) and st.session_state.main_proof.find(st.session_state.main_proof.n_lines).formula.eq_syntax(st.session_state.textboxes["conclusion_textbox"]["value"])
+            st.session_state.reached_conclusion = st.session_state.current_subproof == st.session_state.main_proof and len(st.session_state.main_proof.subproofs) > 0 and isinstance(st.session_state.main_proof.subproofs[-1], DeductionLine) and st.session_state.main_proof.find(st.session_state.main_proof.n_lines()).formula.eq_syntax(st.session_state.textboxes["conclusion_textbox"]["value"])
             
         st.button('Check Proof', on_click=check_proof_button)
 
@@ -303,7 +303,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
         with col2:
             default_string = '---'
-            line_number = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines+1))), key="add_line_prop")
+            line_number = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines()+1))), key="add_line_prop")
             if line_number != default_string:
                 line_number = int(line_number)
 
@@ -360,7 +360,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
         with col2:
             default_string = '---'
-            line_number = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines+1))), key="change_line_prop")
+            line_number = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines()+1))), key="change_line_prop")
             if line_number != default_string:
                 line_number = int(line_number)
 
@@ -417,7 +417,7 @@ if st.session_state.textboxes['assumptions_textbox']['disabled']:
 
         with col2:
             default_string = '---'
-            line_number_delete = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines+1))), key="delete_line_prop")
+            line_number_delete = st.selectbox('Line Number', tuple([default_string] + list(range(len(st.session_state.main_proof.assumptions)+1, st.session_state.main_proof.n_lines()+1))), key="delete_line_prop")
             if line_number_delete != default_string:
                 line_number_delete = int(line_number_delete)
 

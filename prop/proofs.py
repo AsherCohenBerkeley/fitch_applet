@@ -14,9 +14,11 @@ class Proof():
             a.parent_proof = self
             self.assumptions.append(a)
 
-        self.n_lines = len(self.assumptions)
         self.parent = None
         self.subproofs = []
+    
+    def n_lines(self):
+        return len(self.pure_list())
 
     def __str__(self):
         def aux(self, n):
@@ -36,7 +38,7 @@ class Proof():
         def first(self):
             output = ''
             output += r"\begin{array}{l}" + '\n'
-            for i in range(self.n_lines):
+            for i in range(self.n_lines()):
                 output += rf"{i+1} \\" + '\n'
             output += r"\end{array}"+ '\n'
             return output
@@ -82,13 +84,8 @@ class Proof():
         
         return r"\def\arraystretch{1.5}\begin{array}{l l}" + '\n' + first(self) + '\n' + second(self) + '\n' + '&' + '\n' + third(self) + '\n' +  r"\end{array}"
 
-    def update_n_lines(self, n_new_lines):
-        self.n_lines += n_new_lines
-        if self.parent is not None:
-            self.parent.update_n_lines(n_new_lines)
-
     def add_line(self, line_number, formula, rule):
-        if not (1 <= line_number <= self.n_lines):
+        if not (1 <= line_number <= self.n_lines()):
             raise ProofError("trying to add after invalid line number")
         for line in self.pure_list()[line_number:]:
             if isinstance(line, DeductionLine):
@@ -106,7 +103,6 @@ class Proof():
                 line.rule = Rule(new_name, new_cit_lines)
 
         relevant_line = self.pure_list()[line_number-1]
-        relevant_line.parent_proof.update_n_lines(1)
         new_line = DeductionLine(formula, rule)
         new_line.parent_proof = relevant_line.parent_proof
         if isinstance(relevant_line, AssumptionLine):
@@ -116,8 +112,15 @@ class Proof():
             relevant_line.parent_proof.subproofs.insert(idx + 1, new_line)
 
     def delete_line(self, line_number):
-        if not (1 <= line_number <= self.n_lines):
+        if not (1 <= line_number <= self.n_lines()):
             raise ProofError("trying to delete invalid line number")
+        
+        relevant_line = self.pure_list()[line_number-1]
+
+        number_to_remove = 1
+        if isinstance(relevant_line, AssumptionLine) and (relevant_line.parent_proof.parent != None):
+            number_to_remove = relevant_line.parent_proof.n_lines()
+
         for line in self.pure_list()[line_number-1:]:
             if isinstance(line, DeductionLine):
                 old_name = line.rule.name
@@ -127,30 +130,25 @@ class Proof():
                 for number in old_cit_lines:
                     number = int(number)
                     if number > line_number:
-                        new_cit_lines.append(str(number-1))
+                        new_cit_lines.append(str(number-number_to_remove))
                     else:
                         new_cit_lines.append(str(number))
                 new_cit_lines = tuple(new_cit_lines)
                 line.rule = Rule(new_name, new_cit_lines)
 
-        relevant_line = self.pure_list()[line_number-1]
-        relevant_line.parent_proof.update_n_lines(-1)
         if isinstance(relevant_line, AssumptionLine):
-            relevant_line.parent_proof.assumptions.remove(relevant_line)
+            relevant_line.parent_proof.parent.subproofs.remove(relevant_line.parent_proof)
         elif isinstance(relevant_line, DeductionLine):
             relevant_line.parent_proof.subproofs.remove(relevant_line)
         
     def add_last(self, subproof):
         if isinstance(subproof, DeductionLine):
-            n_new_lines = 1
             subproof.parent_proof = self  
         elif isinstance(subproof, Proof):
-            n_new_lines = subproof.n_lines
             subproof.parent = self
         else:
             raise ProofError('adding object with wrong type to proof')
         self.subproofs.append(subproof)
-        self.update_n_lines(n_new_lines)
 
     def remove_last(self):
         if len(self.subproofs) == 0:
@@ -158,7 +156,6 @@ class Proof():
         
         if isinstance(self.subproofs[-1], DeductionLine):
             self.subproofs = self.subproofs[:-1]
-            self.update_n_lines(-1)
             return self
         else:
             return self.subproofs[-1].remove_last()
@@ -166,8 +163,6 @@ class Proof():
     def self_delete(self):
         if self.parent is None:
             raise ProofError('trying to delete main proof')
-        
-        self.update_n_lines(-self.n_lines)
 
         self.parent.subproofs.remove(self)
     
@@ -271,7 +266,7 @@ class Proof():
                 if subproof.parent == None:
                     return BadComment(f'The range {line_number1}-{line_number2} does not encompass a subproof.')
                 
-                if subproof.n_lines != (line_number2-line_number1+1):
+                if subproof.n_lines() != (line_number2-line_number1+1):
                     return BadComment(f'The range {line_number1}-{line_number2} does not encompass a subproof.')
 
                 if not (subproof.parent.parent == None or self.accessible(main_proof.find_line_number(subproof.parent.first()), n)):
